@@ -31,5 +31,5 @@ public class Certificate {
     @Column
     public CertificateType CertificateType;
     @Column
-    public String email;
+    public String username;
 }
