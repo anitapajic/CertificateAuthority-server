@@ -40,6 +40,7 @@ public class UserController {
         user.setUsername(userDTO.getUsername());
         user.setName(userDTO.getName());
         user.setLastname(userDTO.getLastname());
+        user.setTelephone(userDTO.getTelephone());
         //PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         //user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setPassword(userDTO.getPassword());
@@ -57,4 +58,15 @@ public class UserController {
 
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
     }
-}
+
+    @PostMapping(
+            value = "/login",
+            consumes = "application/json")
+    public ResponseEntity login(@RequestBody UserDTO userDTO) throws MessagingException, UnsupportedEncodingException {
+        User user = userService.findOneLogin(userDTO.getUsername(), userDTO.getPassword());
+
+    return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+
+    }
