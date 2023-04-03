@@ -9,8 +9,8 @@ import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
@@ -40,19 +40,20 @@ public class UserController {
         user.setUsername(userDTO.getUsername());
         user.setName(userDTO.getName());
         user.setLastname(userDTO.getLastname());
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        //PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        //user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setPassword(userDTO.getPassword());
         user.setAuthorities("USER");
 
         userService.save(user);
-
-        Activation activation = new Activation();
-        activation.setId(user.getId());
-        activation.setUser(user);
-        activation.setCreationDate(LocalDateTime.now());
-        activation.setExpirationDate(LocalDateTime.now().plusYears(5));
-
-        activationService.save(activation);
+//
+//        Activation activation = new Activation();
+//        activation.setId(user.getId());
+//        activation.setUser(user);
+//        activation.setCreationDate(LocalDateTime.now());
+//        activation.setExpirationDate(LocalDateTime.now().plusYears(5));
+//
+//        activationService.save(activation);
 
         return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
     }
