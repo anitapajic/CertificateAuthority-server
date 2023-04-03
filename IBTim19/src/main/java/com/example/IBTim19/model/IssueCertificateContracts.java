@@ -12,24 +12,18 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class Certificate {
+public class IssueCertificateContracts {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Integer id;
+
     @Column
-    public String serialNumber;
+    public String subjectUsername;
     @Column
-    public String SignatureAlgorithm;
+    public String KeyUsageFlags;
     @Column
-    public String Issuer;
+    public String IssuerSN;
     @Column
-    public LocalDateTime ValidFrom;
-    @Column
-    public LocalDateTime ValidTo;
-    @Column
-    public CertificateStatus Status;
-    @Column
-    public CertificateType CertificateType;
-    @Column
-    public String username;
+    public LocalDateTime date;
+
 }
