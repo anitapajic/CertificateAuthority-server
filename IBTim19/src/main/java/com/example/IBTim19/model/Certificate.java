@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table
@@ -23,9 +24,9 @@ public class Certificate {
     @Column
     public String Issuer;
     @Column
-    public LocalDateTime ValidFrom;
+    public Date ValidFrom;
     @Column
-    public LocalDateTime ValidTo;
+    public Date ValidTo;
     @Column
     public CertificateStatus Status;
     @Column
