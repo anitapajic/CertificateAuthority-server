@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table
@@ -24,6 +25,6 @@ public class IssueCertificateContracts {
     @Column
     public String IssuerSN;
     @Column
-    public LocalDateTime date;
+    public Date date;
 
 }

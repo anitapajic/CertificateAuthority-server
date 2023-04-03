@@ -77,9 +77,17 @@ public class CertificateGenerator {
         Certificate certificateForDb = new Certificate();
         certificateForDb.setIssuer(issuer != null ? issuer.getSerialNumber() : null);
         certificateForDb.setStatus(CertificateStatus.Valid);
-        certificateForDb.setCertificateType(isAuthority
-                ? issuerCertificate == null ? CertificateType.Root : CertificateType.Intermediate
-                : CertificateType.End);
+//        certificateForDb.setCertificateType(isAuthority
+//                ? issuerCertificate == null ? CertificateType.Root : CertificateType.Intermediate
+//                : CertificateType.End);
+        User user = userRepository.findOneUserByUsername(subject.getUsername());
+        if(user.getAuthorities().equals("ADMIN")){
+            certificateForDb.setCertificateType(CertificateType.Root);
+        }
+        else{
+            certificateForDb.setCertificateType(CertificateType.Intermediate);
+        }
+
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
         certificateForDb.setUsername(subject.getName());
@@ -150,10 +158,11 @@ public class CertificateGenerator {
     }
 
     private void validate(String issuerSN, String subjectUsername, String keyUsageFlags, Date validTo) throws Exception {
-        if (issuerSN.isEmpty()) {
+        if (issuerSN == null) {
             if (!(validTo.after(new Date()))) {
                 throw new Exception("The date is not in the accepted range");
             }
+
         } else {
             issuer = certificateRepository.findOneBySerialNumber(issuerSN);
             //009CE3087D7227AE30
