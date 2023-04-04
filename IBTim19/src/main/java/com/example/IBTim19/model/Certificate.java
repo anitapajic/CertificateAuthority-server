@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 
 @Entity
 @Table
@@ -19,17 +19,19 @@ public class Certificate {
     @Column
     public String serialNumber;
     @Column
-    public String SignatureAlgorithm;
+    public String signatureAlgorithm;
     @Column
-    public String Issuer;
+    public String issuer;
     @Column
-    public LocalDateTime ValidFrom;
+    public Date validFrom;
     @Column
-    public LocalDateTime ValidTo;
+    public Date validTo;
     @Column
     public CertificateStatus Status;
     @Column
-    public CertificateType CertificateType;
+    public CertificateType certificateType;
     @Column
     public String username;
+
+
 }

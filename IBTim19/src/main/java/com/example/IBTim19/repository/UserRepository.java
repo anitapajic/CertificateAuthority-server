@@ -18,6 +18,11 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     User findOneUserByUsername(String username);
 
     public Page<User> findAll(Pageable pageable);
+    public User save(User user);
+
+    public void deleteById(Integer userId);
+
+
 
 
 

@@ -2,6 +2,7 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
       <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
@@ -9,8 +10,13 @@
         <module name="IBTim19" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="IBTim19" target="1.5" />
+    <bytecodeTargetLevel target="19">
+      <module name="IBTim19" target="19" />
     </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="IBTim19" options="-parameters" />
+    </option>
   </component>
 </project>
