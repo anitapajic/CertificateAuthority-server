@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -22,7 +21,7 @@ public class Certificate {
     @Column
     public String SignatureAlgorithm;
     @Column
-    public String Issuer;
+    public String issuer;
     @Column
     public Date ValidFrom;
     @Column

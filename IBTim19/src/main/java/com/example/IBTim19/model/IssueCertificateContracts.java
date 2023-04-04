@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -23,7 +22,7 @@ public class IssueCertificateContracts {
     @Column
     public String KeyUsageFlags;
     @Column
-    public String IssuerSN;
+    public String issuerSN;
     @Column
     public Date date;
 

@@ -2,19 +2,12 @@ package com.example.IBTim19.controller;
 
 import com.example.IBTim19.model.Certificate;
 import com.example.IBTim19.model.IssueCertificateContracts;
-import com.example.IBTim19.model.User;
 import com.example.IBTim19.repository.CertificateRepository;
 import com.example.IBTim19.service.CertificateGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -40,7 +33,6 @@ public class CertificateController {
     public ResponseEntity issueCertificate(@RequestBody IssueCertificateContracts contract) {
         try {
             Certificate certificate = _certificateGenerator.IssueCertificate(contract.getIssuerSN(), contract.getSubjectUsername(), contract.getKeyUsageFlags(), contract.getDate());
-            System.out.println(certificate + "aaaaaaaaaaaa");
             return ResponseEntity.ok(certificate);
         }
         catch (Exception e) {

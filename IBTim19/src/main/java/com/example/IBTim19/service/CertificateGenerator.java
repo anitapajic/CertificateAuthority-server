@@ -6,21 +6,15 @@ import com.example.IBTim19.model.CertificateType;
 import com.example.IBTim19.model.User;
 import com.example.IBTim19.repository.CertificateRepository;
 import com.example.IBTim19.repository.UserRepository;
-
-import java.io.*;
-import java.math.BigInteger;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.PrivateKey;
-import java.security.cert.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Date;
-
-import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
@@ -29,17 +23,24 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.*;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Date;
 
 
 @Service
@@ -77,16 +78,17 @@ public class CertificateGenerator {
         Certificate certificateForDb = new Certificate();
         certificateForDb.setIssuer(issuer != null ? issuer.getSerialNumber() : null);
         certificateForDb.setStatus(CertificateStatus.Valid);
-//        certificateForDb.setCertificateType(isAuthority
-//                ? issuerCertificate == null ? CertificateType.Root : CertificateType.Intermediate
-//                : CertificateType.End);
+
+        certificateForDb.setCertificateType(isAuthority
+                ? issuer == null ? CertificateType.Root : CertificateType.Intermediate
+                : CertificateType.End);
         User user = userRepository.findOneUserByUsername(subject.getUsername());
-        if(user.getAuthorities().equals("ADMIN")){
-            certificateForDb.setCertificateType(CertificateType.Root);
-        }
-        else{
-            certificateForDb.setCertificateType(CertificateType.Intermediate);
-        }
+//        if(user.getAuthorities().equals("ADMIN")){
+//            certificateForDb.setCertificateType(CertificateType.Root);
+//        }
+//        else{
+//            certificateForDb.setCertificateType(CertificateType.Intermediate);
+//        }
 
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
@@ -100,7 +102,8 @@ public class CertificateGenerator {
                 cert.getEncoded());
         Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".key"),
                 currentKeyPair.getPrivate().getEncoded());
-
+        isAuthority = false;
+        issuer = null;
         return certificateForDb;
     }
 
@@ -165,7 +168,7 @@ public class CertificateGenerator {
 
         } else {
             issuer = certificateRepository.findOneBySerialNumber(issuerSN);
-            //009CE3087D7227AE30
+            System.out.println(issuer + "issuer u validate");
 
             X509Certificate issuerCertificate = readCertificateFromFile(String.format("%s/%s.crt", certDir, issuerSN));
             //RSAPrivateKey privateKey = (RSAPrivateKey) getPrivateKeyFromBytes(String.format("%s/%s.key", certDir, issuerSN));
@@ -196,6 +199,7 @@ public class CertificateGenerator {
                 if (index == 5) {
                     isAuthority = true;
                 }
+
             } catch (NumberFormatException e) {
                 throw new IllegalArgumentException("Unknown flag: " + flag, e);
             }
