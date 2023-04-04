@@ -5,6 +5,7 @@ import com.example.IBTim19.model.IssueCertificateContracts;
 import com.example.IBTim19.repository.CertificateRepository;
 import com.example.IBTim19.service.CertificateGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,7 +34,7 @@ public class CertificateController {
     public ResponseEntity issueCertificate(@RequestBody IssueCertificateContracts contract) {
         try {
             Certificate certificate = _certificateGenerator.IssueCertificate(contract.getIssuerSN(), contract.getSubjectUsername(), contract.getKeyUsageFlags(), contract.getDate());
-            return ResponseEntity.ok(certificate);
+            return new ResponseEntity<>(certificate, HttpStatus.OK);
         }
         catch (Exception e) {
             System.out.println(e);

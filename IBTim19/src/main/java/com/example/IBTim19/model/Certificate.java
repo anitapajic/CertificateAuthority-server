@@ -19,17 +19,19 @@ public class Certificate {
     @Column
     public String serialNumber;
     @Column
-    public String SignatureAlgorithm;
+    public String signatureAlgorithm;
     @Column
     public String issuer;
     @Column
-    public Date ValidFrom;
+    public Date validFrom;
     @Column
-    public Date ValidTo;
+    public Date validTo;
     @Column
     public CertificateStatus Status;
     @Column
-    public CertificateType CertificateType;
+    public CertificateType certificateType;
     @Column
     public String username;
+
+
 }

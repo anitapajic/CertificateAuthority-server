@@ -83,12 +83,7 @@ public class CertificateGenerator {
                 ? issuer == null ? CertificateType.Root : CertificateType.Intermediate
                 : CertificateType.End);
         User user = userRepository.findOneUserByUsername(subject.getUsername());
-//        if(user.getAuthorities().equals("ADMIN")){
-//            certificateForDb.setCertificateType(CertificateType.Root);
-//        }
-//        else{
-//            certificateForDb.setCertificateType(CertificateType.Intermediate);
-//        }
+
 
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
