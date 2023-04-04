@@ -77,16 +77,9 @@ public class CertificateGenerator {
         Certificate certificateForDb = new Certificate();
         certificateForDb.setIssuer(issuer != null ? issuer.getSerialNumber() : null);
         certificateForDb.setStatus(CertificateStatus.Valid);
-//        certificateForDb.setCertificateType(isAuthority
-//                ? issuerCertificate == null ? CertificateType.Root : CertificateType.Intermediate
-//                : CertificateType.End);
-        User user = userRepository.findOneUserByUsername(subject.getUsername());
-        if(user.getAuthorities().equals("ADMIN")){
-            certificateForDb.setCertificateType(CertificateType.Root);
-        }
-        else{
-            certificateForDb.setCertificateType(CertificateType.Intermediate);
-        }
+        certificateForDb.setCertificateType(isAuthority
+                ? issuerCertificate == null ? CertificateType.Root : CertificateType.Intermediate
+                : CertificateType.End);
 
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
