@@ -3,7 +3,9 @@ package com.example.IBTim19.controller;
 import com.example.IBTim19.DTO.AuthDTO;
 import com.example.IBTim19.DTO.LoginDTO;
 import com.example.IBTim19.DTO.UserDTO;
+import com.example.IBTim19.model.Activation;
 import com.example.IBTim19.model.User;
+import com.example.IBTim19.service.ActivationService;
 import com.example.IBTim19.service.UserService;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping(value = "/api/user")
@@ -20,6 +23,9 @@ public class AuthenticationController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private ActivationService activationService;
+
     @PostMapping(
             value = "/login",
             consumes = "application/json")
@@ -41,17 +47,33 @@ public class AuthenticationController {
         }
 
         User user = userService.createNewUser(userDTO);
+        userService.sendVerificationMail(user.getUsername(), user.getId());
 
 
-//
-//        Activation activation = new Activation();
-//        activation.setId(user.getId());
-//        activation.setUser(user);
-//        activation.setCreationDate(LocalDateTime.now());
-//        activation.setExpirationDate(LocalDateTime.now().plusYears(5));
-//
-//        activationService.save(activation);
-
-        return new ResponseEntity<>(new UserDTO(user), HttpStatus.CREATED);
+        return new ResponseEntity<>("Check your email", HttpStatus.CREATED);
     }
+
+    //ACTIVATE USER ACCOUNT  /api/user/activate/activationId
+    @GetMapping(value = "/activate/{activationId}")
+    public ResponseEntity activateAccount(@PathVariable Integer activationId) {
+
+
+        try{
+            Activation activation = activationService.findOne(activationId);
+
+            if(activation.getExpirationDate().isBefore(LocalDateTime.now())){
+                return new ResponseEntity<>("Activation expired. Register again!", HttpStatus.BAD_REQUEST);
+            }
+            User user = activation.getUser();
+            user.setActive(true);
+            userService.save(user);
+
+            return new ResponseEntity<>("Successful account activation!", HttpStatus.OK);
+        }
+        catch (NullPointerException ex){
+            return new ResponseEntity<>("Activation with entered id does not exist!", HttpStatus.NOT_FOUND);
+        }
+    }
+
+
 }

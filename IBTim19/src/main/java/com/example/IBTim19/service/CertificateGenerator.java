@@ -52,6 +52,7 @@ public class CertificateGenerator {
     private UserRepository userRepository;
 
     private static String certDir = "crts";
+    private static String certKeyDir = "crtkeys";
 
     private Certificate issuer;
     private User subject;
@@ -95,7 +96,7 @@ public class CertificateGenerator {
 
         Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".crt"),
                 cert.getEncoded());
-        Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".key"),
+        Files.write(Paths.get(certKeyDir, certificateForDb.getSerialNumber() + ".key"),
                 currentKeyPair.getPrivate().getEncoded());
         isAuthority = false;
         issuer = null;
@@ -166,7 +167,7 @@ public class CertificateGenerator {
             System.out.println(issuer + "issuer u validate");
 
             X509Certificate issuerCertificate = readCertificateFromFile(String.format("%s/%s.crt", certDir, issuerSN));
-            //RSAPrivateKey privateKey = (RSAPrivateKey) getPrivateKeyFromBytes(String.format("%s/%s.key", certDir, issuerSN));
+            //RSAPrivateKey privateKey = (RSAPrivateKey) getPrivateKeyFromBytes(String.format("%s/%s.key", certKeyDir, issuerSN));
             //issuerCertificate = X509CertificateGeneratorUtils.copyWithPrivateKey(issuerCertificate, privateKey);
 
             if (!(validTo.after(new Date()) && validTo.before(issuerCertificate.getNotAfter()))) {
