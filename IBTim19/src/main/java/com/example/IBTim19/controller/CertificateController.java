@@ -2,11 +2,12 @@ package com.example.IBTim19.controller;
 
 import com.example.IBTim19.model.Certificate;
 import com.example.IBTim19.model.IssueCertificateContracts;
-import com.example.IBTim19.repository.CertificateRepository;
 import com.example.IBTim19.service.CertificateGenerator;
+import com.example.IBTim19.service.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,23 +18,25 @@ import java.util.List;
 public class CertificateController {
 
     @Autowired
-    private CertificateRepository _certificateRepository;
+    private CertificateService certificateService;
 
     @Autowired
-    private CertificateGenerator _certificateGenerator;
-    public CertificateController(CertificateRepository certificateRepository, CertificateGenerator certificateGenerator) {
-        _certificateRepository = certificateRepository;
-        _certificateGenerator = certificateGenerator;
-    }
+    private CertificateGenerator certificateGenerator;
+
+
+//    /api/certificates
     @GetMapping("/certificates")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public List<Certificate> getAllCertificates() {
-        return _certificateRepository.findAll();
+        return certificateService.findAll();
     }
 
-    @PostMapping("/certificates")
+//    /api/certificate
+    @PostMapping("/certificate")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity issueCertificate(@RequestBody IssueCertificateContracts contract) {
         try {
-            Certificate certificate = _certificateGenerator.IssueCertificate(contract.getIssuerSN(), contract.getSubjectUsername(), contract.getKeyUsageFlags(), contract.getDate());
+            Certificate certificate = certificateGenerator.IssueCertificate(contract.getIssuerSN(), contract.getSubjectUsername(), contract.getKeyUsageFlags(), contract.getDate());
             return new ResponseEntity<>(certificate, HttpStatus.OK);
         }
         catch (Exception e) {
@@ -41,4 +44,20 @@ public class CertificateController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+//    @GetMapping(value = "/certificate/{sn}")
+//    public ResponseEntity validate(@PathVariable String sn) throws MessagingException, UnsupportedEncodingException {
+//
+//        if(sn==null){
+//            return new ResponseEntity<>("Certificate with this serial number does not exist!", HttpStatus.NOT_FOUND);
+//        }
+//        Certificate cert = certificateService.findOneBySerialNumber(sn);
+//        Certificate issuerCertificate = certificateService.findOneBySerialNumber(cert.issuer);
+//        if(cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo())){
+//            return new ResponseEntity<>("This certificate is valid!", HttpStatus.OK);
+//        }
+//
+//        return new ResponseEntity(HttpStatus.BAD_REQUEST);
+//    }
+
 }
