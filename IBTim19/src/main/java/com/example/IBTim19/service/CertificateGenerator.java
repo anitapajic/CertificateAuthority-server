@@ -1,9 +1,7 @@
 package com.example.IBTim19.service;
 
+import com.example.IBTim19.model.*;
 import com.example.IBTim19.model.Certificate;
-import com.example.IBTim19.model.CertificateStatus;
-import com.example.IBTim19.model.CertificateType;
-import com.example.IBTim19.model.User;
 import com.example.IBTim19.repository.CertificateRepository;
 import com.example.IBTim19.repository.UserRepository;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -82,8 +80,17 @@ public class CertificateGenerator {
         certificateForDb.setCertificateType(isAuthority
                 ? issuer == null ? CertificateType.Root : CertificateType.Intermediate
                 : CertificateType.End);
-        User user = userRepository.findOneUserByUsername(subject.getUsername());
 
+
+        if(isAuthority && issuer==null){
+            certificateForDb.setState(RequestStatus.ACCEPTED);
+        }
+        else if(issuer.getUsername().equals(subject.getUsername())){
+            certificateForDb.setState(RequestStatus.ACCEPTED);
+        }
+        else{
+            certificateForDb.setState(RequestStatus.PENDING);
+        }
 
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
