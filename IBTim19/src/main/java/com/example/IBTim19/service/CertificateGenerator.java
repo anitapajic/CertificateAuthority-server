@@ -50,6 +50,7 @@ public class CertificateGenerator {
     private UserRepository userRepository;
 
     private static String certDir = "crts";
+    private static String keyDir = "keys";
 
     private Certificate issuer;
     private User subject;
@@ -102,7 +103,7 @@ public class CertificateGenerator {
 
         Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".crt"),
                 cert.getEncoded());
-        Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".key"),
+        Files.write(Paths.get(keyDir, certificateForDb.getSerialNumber() + ".key"),
                 currentKeyPair.getPrivate().getEncoded());
         isAuthority = false;
         issuer = null;
