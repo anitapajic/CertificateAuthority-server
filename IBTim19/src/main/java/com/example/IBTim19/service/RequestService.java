@@ -28,7 +28,7 @@ public class RequestService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User auth = (User) authentication.getPrincipal();
 
-        if(auth.getRole().equals("ADMIN")){
+        if(auth.getRole().equals(Role.ADMIN)){
             try {
                 certificateGenerator.IssueCertificate(requestDTO.getIssuerSN(), auth.getUsername(), "3,4,5", requestDTO.getDate());
                 return null;
@@ -73,8 +73,20 @@ public class RequestService {
         return request;
     }
 
-    public void acceptRequest(Integer requestId){
+    public String acceptRequest(Integer requestId){
         Request request = requestRepository.findById(requestId).get();
+
+
+        if(!request.getState().equals(RequestStatus.PENDING)){
+            return "Only pending requests can be accepted";
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User auth = (User) authentication.getPrincipal();
+        Certificate issuerCert = certificateRepository.findOneBySerialNumber(request.getIssuer());
+        if (!issuerCert.getUsername().equals(auth.getUsername())){
+            return "Only issuer can accept";
+        }
 
         try {
             certificateGenerator.IssueCertificate(request.getIssuer(), request.getSubjectUsername(), "3,4", request.getValidTo());
@@ -84,12 +96,25 @@ public class RequestService {
         catch (Exception e) {
             System.out.println(e);
         }
-
+        return "Request accepted";
     }
-    public void rejectRequest(Integer requestId){
+    public String rejectRequest(Integer requestId){
         Request request = requestRepository.findById(requestId).get();
+
+        if(!request.getState().equals(RequestStatus.PENDING)){
+            return "Only pending requests can be rejected";
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User auth = (User) authentication.getPrincipal();
+        Certificate issuerCert = certificateRepository.findOneBySerialNumber(request.getIssuer());
+        if (!issuerCert.getUsername().equals(auth.getUsername())){
+            return "Only issuer can reject";
+        }
+
         request.setState(RequestStatus.REJECTED);
         requestRepository.save(request);
+        return "Request rejected";
 
     }
 

@@ -46,16 +46,16 @@ public class RequestController {
             consumes = "application/json")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity acceptRequest(@PathVariable Integer id){
-        requestService.acceptRequest(id);
-        return  new ResponseEntity<>("Request accepted", HttpStatus.OK);
+        String s = requestService.acceptRequest(id);
+        return  new ResponseEntity<>(s, HttpStatus.OK);
 
     }
     @PostMapping(value = "/reject/{id}",
             consumes = "application/json")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity rejectRequest(@PathVariable Integer id){
-        requestService.rejectRequest(id);
-        return  new ResponseEntity<>("Request rejected", HttpStatus.OK);
+        String s = requestService.rejectRequest(id);
+        return  new ResponseEntity<>(s, HttpStatus.OK);
 
     }
 
