@@ -1,7 +1,6 @@
 package com.example.IBTim19.controller;
 
 import com.example.IBTim19.DTO.RequestDTO;
-import com.example.IBTim19.model.Certificate;
 import com.example.IBTim19.model.Request;
 import com.example.IBTim19.service.CertificateService;
 import com.example.IBTim19.service.RequestService;
@@ -26,16 +25,38 @@ public class RequestController {
 
     @PostMapping(value = "/create",
             consumes = "application/json")
-    @PreAuthorize("hasAnyAuthority('USER')")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity createRequest(@RequestBody RequestDTO requestDTO){
         try{
-            Request request = requestService.createRequest(requestDTO);
-            return  new ResponseEntity<>(request, HttpStatus.OK);
+
+            Request request = requestService.processRequest(requestDTO);
+            if (request != null){
+                return  new ResponseEntity<>(request, HttpStatus.OK);
+            }
+
+            return  new ResponseEntity<>("Certificate created", HttpStatus.OK);
         }
         catch (Exception e) {
             System.out.println(e);
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    @PostMapping(value = "/accept/{id}",
+            consumes = "application/json")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity acceptRequest(@PathVariable Integer id){
+        requestService.acceptRequest(id);
+        return  new ResponseEntity<>("Request accepted", HttpStatus.OK);
+
+    }
+    @PostMapping(value = "/reject/{id}",
+            consumes = "application/json")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity rejectRequest(@PathVariable Integer id){
+        requestService.rejectRequest(id);
+        return  new ResponseEntity<>("Request rejected", HttpStatus.OK);
+
     }
 
     @GetMapping("/myRequests")
