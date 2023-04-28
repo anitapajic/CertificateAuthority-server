@@ -60,15 +60,17 @@ public class CertificateGenerator {
     private Date validTo;
     private KeyPair currentKeyPair;
     private KeyUsage flags;
+    private CertificateType type;
 
     @Autowired
     public CertificateGenerator(UserRepository userRepository, CertificateRepository certificateRepository){
         this.certificateRepository = certificateRepository;
         this.userRepository = userRepository;
     }
-    public Certificate IssueCertificate(String issuerSN, String subjectUsername, String keyUsageFlags, Date validTo) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException,
+    public Certificate IssueCertificate(String issuerSN, String subjectUsername, String keyUsageFlags, Date validTo, CertificateType certType) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException,
             SignatureException, IOException, InvalidKeySpecException, OperatorCreationException, Exception {
         validate(issuerSN, subjectUsername, keyUsageFlags, validTo);
+        type = certType;
         X509Certificate cert = generateCertificate();
 
         return exportGeneratedCertificate(cert);
@@ -78,10 +80,8 @@ public class CertificateGenerator {
         Certificate certificateForDb = new Certificate();
         certificateForDb.setIssuer(issuer != null ? issuer.getSerialNumber() : null);
         certificateForDb.setStatus(CertificateStatus.Valid);
-
-        certificateForDb.setCertificateType(isAuthority
-                ? issuer == null ? CertificateType.Root : CertificateType.Intermediate
-                : CertificateType.End);
+        
+        certificateForDb.setCertificateType(type);
 
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
@@ -161,7 +161,6 @@ public class CertificateGenerator {
 
         } else {
             issuer = certificateRepository.findOneBySerialNumber(issuerSN);
-            System.out.println(issuer + "issuer u validate");
 
             X509Certificate issuerCertificate = readCertificateFromFile(String.format("%s/%s.crt", certDir, issuerSN));
             //RSAPrivateKey privateKey = (RSAPrivateKey) getPrivateKeyFromBytes(String.format("%s/%s.key", certDir, issuerSN));

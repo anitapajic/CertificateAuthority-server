@@ -50,13 +50,12 @@ public class RequestController {
                 }
             }
 
-            Request request = requestService.processRequest(requestDTO);
+            Object request = requestService.processRequest(requestDTO);
+            if(request == null){
+                return  new ResponseEntity<>("Invalide date", HttpStatus.BAD_REQUEST);
 
-            if (request != null){
-                return  new ResponseEntity<>(request, HttpStatus.CREATED);
             }
-
-            return  new ResponseEntity<>("Certificate created", HttpStatus.OK);
+            return  new ResponseEntity<>(request, HttpStatus.CREATED);
         }
         catch (Exception e) {
             System.out.println(e);

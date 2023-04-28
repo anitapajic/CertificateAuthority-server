@@ -36,8 +36,8 @@ public class Certificate {
     public String username;
 
 //    @Enumerated(EnumType.STRING)
-    @Column
-    public RequestStatus state;
+//    @Column
+//    public RequestStatus state;
 
 
     public Integer getId() {
@@ -111,12 +111,12 @@ public class Certificate {
     public void setUsername(String username) {
         this.username = username;
     }
-
-    public RequestStatus getState() {
-        return state;
-    }
-
-    public void setState(RequestStatus state) {
-        this.state = state;
-    }
+//
+//    public RequestStatus getState() {
+//        return state;
+//    }
+//
+//    public void setState(RequestStatus state) {
+//        this.state = state;
+//    }
 }

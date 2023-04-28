@@ -25,14 +25,13 @@ public class RequestService {
 
     public List<Request> findAllByIssuerUsername(String username){return this.requestRepository.findAllByIssuerUsername(username);}
 
-    public Request processRequest(RequestDTO requestDTO){
+    public Object processRequest(RequestDTO requestDTO){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User auth = (User) authentication.getPrincipal();
 
         if(auth.getRole().equals(Role.ADMIN)){
             try {
-                certificateGenerator.IssueCertificate(requestDTO.getIssuerSN(), auth.getUsername(), "3,4,5", requestDTO.getDate());
-                return null;
+                return certificateGenerator.IssueCertificate(requestDTO.getIssuerSN(), auth.getUsername(), "3,4,5", requestDTO.getDate(), CertificateType.valueOf(requestDTO.getCertificateType()));
             }
             catch (Exception e) {
                 System.out.println(e);
@@ -40,11 +39,13 @@ public class RequestService {
         }
 
         Certificate issuerCert = certificateRepository.findOneBySerialNumber(requestDTO.getIssuerSN());
+        if(issuerCert.getValidTo().before(requestDTO.getDate())){
+            return null;
+        }
 
         if(auth.getUsername().equals(issuerCert.getUsername())){
             try {
-                certificateGenerator.IssueCertificate(requestDTO.getIssuerSN(), auth.getUsername(), "3,4", requestDTO.getDate());
-                return null;
+                return certificateGenerator.IssueCertificate(requestDTO.getIssuerSN(), auth.getUsername(), "3,4", requestDTO.getDate(), CertificateType.valueOf(requestDTO.getCertificateType()));
             }
             catch (Exception e) {
                 System.out.println(e);
@@ -91,7 +92,7 @@ public class RequestService {
         }
 
         try {
-            certificateGenerator.IssueCertificate(request.getIssuer(), request.getSubjectUsername(), "3,4", request.getValidTo());
+            certificateGenerator.IssueCertificate(request.getIssuer(), request.getSubjectUsername(), "3,4", request.getValidTo(), request.getCertificateType());
             request.setState(RequestStatus.ACCEPTED);
             requestRepository.save(request);
         }
