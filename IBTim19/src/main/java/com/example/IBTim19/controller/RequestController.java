@@ -1,5 +1,6 @@
 package com.example.IBTim19.controller;
 
+import com.example.IBTim19.DTO.RequestDTO;
 import com.example.IBTim19.model.Certificate;
 import com.example.IBTim19.model.Request;
 import com.example.IBTim19.service.CertificateService;
@@ -10,10 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,6 +23,20 @@ public class RequestController {
     private RequestService requestService;
     @Autowired
     private CertificateService certificateService;
+
+    @PostMapping(value = "/create",
+            consumes = "application/json")
+    @PreAuthorize("hasAnyAuthority('USER')")
+    public ResponseEntity createRequest(@RequestBody RequestDTO requestDTO){
+        try{
+            Request request = requestService.createRequest(requestDTO);
+            return  new ResponseEntity<>(request, HttpStatus.OK);
+        }
+        catch (Exception e) {
+            System.out.println(e);
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 
     @GetMapping("/myRequests")
     @PreAuthorize("hasAnyAuthority('USER')")

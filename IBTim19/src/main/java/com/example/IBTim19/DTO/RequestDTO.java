@@ -3,18 +3,10 @@ package com.example.IBTim19.DTO;
 import java.util.Date;
 
 public class RequestDTO {
-    private String keyUsageFlags;
     private String certificateType;
     private  Date date;
     private String issuerSN;
 
-    public String getKeyUsageFlags() {
-        return keyUsageFlags;
-    }
-
-    public void setKeyUsageFlags(String keyUsageFlags) {
-        this.keyUsageFlags = keyUsageFlags;
-    }
 
     public String getCertificateType() {
         return certificateType;
@@ -38,5 +30,14 @@ public class RequestDTO {
 
     public void setIssuerSN(String issuerSN) {
         this.issuerSN = issuerSN;
+    }
+
+    @Override
+    public String toString() {
+        return "RequestDTO{" +
+                "certificateType='" + certificateType + '\'' +
+                ", date=" + date +
+                ", issuerSN='" + issuerSN + '\'' +
+                '}';
     }
 }

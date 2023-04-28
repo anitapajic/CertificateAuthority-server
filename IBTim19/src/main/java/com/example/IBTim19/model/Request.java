@@ -20,8 +20,6 @@ public class Request {
     @Column
     public String issuer;
     @Column
-    public Date validFrom;
-    @Column
     public Date validTo;
     @Column
     public CertificateType certificateType;
