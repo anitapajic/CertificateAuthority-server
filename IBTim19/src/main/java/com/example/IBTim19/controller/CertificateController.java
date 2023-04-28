@@ -51,19 +51,7 @@ public class CertificateController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-    @GetMapping("/myRequests")
-    @PreAuthorize("hasAnyAuthority('USER')")
-    public ResponseEntity getUserRequests(@AuthenticationPrincipal UserDetails userDetails){
-        try {
-            List<Certificate> certificates = certificateService.findAllByUsername(userDetails.getUsername());
 
-             return new ResponseEntity<>(certificates, HttpStatus.OK);
-        }
-        catch (Exception e) {
-            System.out.println(e);
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
 
 //    @GetMapping(value = "/certificate/{sn}")
 //    public ResponseEntity validate(@PathVariable String sn) throws MessagingException, UnsupportedEncodingException {

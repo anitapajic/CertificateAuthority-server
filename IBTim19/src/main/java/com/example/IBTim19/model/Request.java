@@ -24,8 +24,6 @@ public class Request {
     @Column
     public Date validTo;
     @Column
-    public CertificateStatus status;
-    @Column
     public CertificateType certificateType;
     @Column
     public RequestStatus state;
