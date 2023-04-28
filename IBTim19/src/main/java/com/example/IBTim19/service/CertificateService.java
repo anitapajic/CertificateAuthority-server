@@ -26,5 +26,6 @@ public class CertificateService {
     public List<Certificate> findAllByUsername(String username){
         return this.certificateRepository.findAllByUsername(username);
     }
+    public Certificate findOneById(Integer id){return this.certificateRepository.findOneById(id);}
 
 }

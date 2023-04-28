@@ -12,4 +12,5 @@ public interface CertificateRepository extends JpaRepository<Certificate, Intege
     public List<Certificate> findAll();
 
     public List<Certificate> findAllByUsername(String username);
+    public Certificate findOneById(Integer id);
 }
