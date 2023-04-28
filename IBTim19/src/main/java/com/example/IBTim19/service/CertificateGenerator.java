@@ -4,6 +4,7 @@ import com.example.IBTim19.model.*;
 import com.example.IBTim19.model.Certificate;
 import com.example.IBTim19.repository.CertificateRepository;
 import com.example.IBTim19.repository.UserRepository;
+import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
@@ -169,6 +170,9 @@ public class CertificateGenerator {
             if (!(validTo.after(new Date()) && validTo.before(issuerCertificate.getNotAfter()))) {
                 throw new Exception("The date is not in the accepted range");
             }
+            if(issuer.getStatus().equals(CertificateStatus.NotValid)){
+                throw new Exception("Issuer certificate is not valid!");
+            }
         }
         this.validTo = validTo;
         subject = userRepository.findOneUserByUsername(subjectUsername);
@@ -211,7 +215,7 @@ public class CertificateGenerator {
         }
     }
 
-    private X509Certificate readCertificateFromFile(String path) {
+    public X509Certificate readCertificateFromFile(String path) {
         File certificateFile = new File(path);
         try (InputStream inStream = new FileInputStream(certificateFile)) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
