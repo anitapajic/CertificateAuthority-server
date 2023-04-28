@@ -26,14 +26,17 @@ public class Certificate {
     public Date validFrom;
     @Column
     public Date validTo;
-    @Enumerated(EnumType.STRING)
+//    @Enumerated(EnumType.STRING)
+    @Column
     public CertificateStatus Status;
-    @Enumerated(EnumType.STRING)
+//    @Enumerated(EnumType.STRING)
+    @Column
     public CertificateType certificateType;
     @Column
     public String username;
 
-    @Enumerated(EnumType.STRING)
+//    @Enumerated(EnumType.STRING)
+    @Column
     public RequestStatus state;
 
 

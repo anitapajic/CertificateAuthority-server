@@ -82,7 +82,7 @@ public class CertificateGenerator {
                 : CertificateType.End);
 
 
-        if(isAuthority && issuer==null){
+        if(isAuthority){
             certificateForDb.setState(RequestStatus.ACCEPTED);
         }
         else if(issuer.getUsername().equals(subject.getUsername())){
@@ -94,7 +94,7 @@ public class CertificateGenerator {
 
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
-        certificateForDb.setUsername(subject.getName());
+        certificateForDb.setUsername(subject.getUsername());
         certificateForDb.setValidFrom(cert.getNotBefore());
         certificateForDb.setValidTo(cert.getNotAfter());
 
@@ -110,7 +110,7 @@ public class CertificateGenerator {
     }
 
     private X509Certificate generateCertificate() throws CertificateException, NoSuchAlgorithmException, OperatorCreationException, IOException {
-        X500Name subjectText = new X500Name("CN=" + subject.getName());
+        X500Name subjectText = new X500Name("CN=" + subject.getUsername());
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(4096, new SecureRandom());
         currentKeyPair = keyPairGenerator.generateKeyPair();
