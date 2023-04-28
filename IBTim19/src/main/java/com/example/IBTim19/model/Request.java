@@ -27,6 +27,10 @@ public class Request {
     public RequestStatus state;
     @Column
     public String subjectUsername;
+    @Column
+    public String reason;
+    @Column
+    public String issuerUsername;
 
 
 }

@@ -8,6 +8,7 @@ import java.util.List;
 public interface RequestRepository extends JpaRepository<Request, Integer> {
     public List<Request> findAll();
     public List<Request> findAllBySubjectUsername(String username);
+    public List<Request> findAllByIssuerUsername(String username);
 
 
 }

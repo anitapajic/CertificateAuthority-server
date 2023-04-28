@@ -23,6 +23,7 @@ public class RequestService {
     public List<Request> findAll(){return this.requestRepository.findAll();}
     public List<Request> findAllBySubjectUsername(String username){return this.requestRepository.findAllBySubjectUsername(username);}
 
+    public List<Request> findAllByIssuerUsername(String username){return this.requestRepository.findAllByIssuerUsername(username);}
 
     public Request processRequest(RequestDTO requestDTO){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -59,6 +60,7 @@ public class RequestService {
             return null;
         }
         else{
+            request.setIssuerUsername(certificateRepository.findOneBySerialNumber(requestDTO.getIssuerSN()).getUsername());
             request.setState(RequestStatus.PENDING);
             request.setIssuer(requestDTO.getIssuerSN());
             request.setValidTo(requestDTO.getDate());
@@ -98,7 +100,9 @@ public class RequestService {
         }
         return "Request accepted";
     }
-    public String rejectRequest(Integer requestId){
+
+    public String rejectRequest(Integer requestId, String reason){
+
         Request request = requestRepository.findById(requestId).get();
 
         if(!request.getState().equals(RequestStatus.PENDING)){
@@ -113,6 +117,7 @@ public class RequestService {
         }
 
         request.setState(RequestStatus.REJECTED);
+        request.setReason(reason);
         requestRepository.save(request);
         return "Request rejected";
 

@@ -82,17 +82,6 @@ public class CertificateGenerator {
                 ? issuer == null ? CertificateType.Root : CertificateType.Intermediate
                 : CertificateType.End);
 
-
-        if(isAuthority){
-            certificateForDb.setState(RequestStatus.ACCEPTED);
-        }
-        else if(issuer.getUsername().equals(subject.getUsername())){
-            certificateForDb.setState(RequestStatus.ACCEPTED);
-        }
-        else{
-            certificateForDb.setState(RequestStatus.PENDING);
-        }
-
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
         certificateForDb.setUsername(subject.getUsername());

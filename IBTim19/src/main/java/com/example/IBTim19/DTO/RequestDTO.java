@@ -6,7 +6,15 @@ public class RequestDTO {
     private String certificateType;
     private  Date date;
     private String issuerSN;
+    private String reason;
 
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String reason) {
+        this.reason = reason;
+    }
 
     public String getCertificateType() {
         return certificateType;
