@@ -1,11 +1,10 @@
 package com.example.IBTim19.service;
 
+import com.example.IBTim19.model.*;
 import com.example.IBTim19.model.Certificate;
-import com.example.IBTim19.model.CertificateStatus;
-import com.example.IBTim19.model.CertificateType;
-import com.example.IBTim19.model.User;
 import com.example.IBTim19.repository.CertificateRepository;
 import com.example.IBTim19.repository.UserRepository;
+import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
@@ -52,6 +51,7 @@ public class CertificateGenerator {
     private UserRepository userRepository;
 
     private static String certDir = "crts";
+    private static String keyDir = "keys";
 
     private Certificate issuer;
     private User subject;
@@ -60,15 +60,17 @@ public class CertificateGenerator {
     private Date validTo;
     private KeyPair currentKeyPair;
     private KeyUsage flags;
+    private CertificateType type;
 
     @Autowired
     public CertificateGenerator(UserRepository userRepository, CertificateRepository certificateRepository){
         this.certificateRepository = certificateRepository;
         this.userRepository = userRepository;
     }
-    public Certificate IssueCertificate(String issuerSN, String subjectUsername, String keyUsageFlags, Date validTo) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException,
+    public Certificate IssueCertificate(String issuerSN, String subjectUsername, String keyUsageFlags, Date validTo, CertificateType certType) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException,
             SignatureException, IOException, InvalidKeySpecException, OperatorCreationException, Exception {
         validate(issuerSN, subjectUsername, keyUsageFlags, validTo);
+        type = certType;
         X509Certificate cert = generateCertificate();
 
         return exportGeneratedCertificate(cert);
@@ -78,16 +80,12 @@ public class CertificateGenerator {
         Certificate certificateForDb = new Certificate();
         certificateForDb.setIssuer(issuer != null ? issuer.getSerialNumber() : null);
         certificateForDb.setStatus(CertificateStatus.Valid);
-
-        certificateForDb.setCertificateType(isAuthority
-                ? issuer == null ? CertificateType.Root : CertificateType.Intermediate
-                : CertificateType.End);
-        User user = userRepository.findOneUserByUsername(subject.getUsername());
-
+        
+        certificateForDb.setCertificateType(type);
 
         certificateForDb.setSerialNumber(cert.getSerialNumber().toString(16));
         certificateForDb.setSignatureAlgorithm(cert.getSigAlgName());
-        certificateForDb.setUsername(subject.getName());
+        certificateForDb.setUsername(subject.getUsername());
         certificateForDb.setValidFrom(cert.getNotBefore());
         certificateForDb.setValidTo(cert.getNotAfter());
 
@@ -95,7 +93,7 @@ public class CertificateGenerator {
 
         Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".crt"),
                 cert.getEncoded());
-        Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".key"),
+        Files.write(Paths.get(keyDir, certificateForDb.getSerialNumber() + ".key"),
                 currentKeyPair.getPrivate().getEncoded());
         isAuthority = false;
         issuer = null;
@@ -103,7 +101,7 @@ public class CertificateGenerator {
     }
 
     private X509Certificate generateCertificate() throws CertificateException, NoSuchAlgorithmException, OperatorCreationException, IOException {
-        X500Name subjectText = new X500Name("CN=" + subject.getName());
+        X500Name subjectText = new X500Name("CN=" + subject.getUsername());
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(4096, new SecureRandom());
         currentKeyPair = keyPairGenerator.generateKeyPair();
@@ -163,7 +161,6 @@ public class CertificateGenerator {
 
         } else {
             issuer = certificateRepository.findOneBySerialNumber(issuerSN);
-            System.out.println(issuer + "issuer u validate");
 
             X509Certificate issuerCertificate = readCertificateFromFile(String.format("%s/%s.crt", certDir, issuerSN));
             //RSAPrivateKey privateKey = (RSAPrivateKey) getPrivateKeyFromBytes(String.format("%s/%s.key", certDir, issuerSN));
@@ -171,6 +168,9 @@ public class CertificateGenerator {
 
             if (!(validTo.after(new Date()) && validTo.before(issuerCertificate.getNotAfter()))) {
                 throw new Exception("The date is not in the accepted range");
+            }
+            if(issuer.getStatus().equals(CertificateStatus.NotValid)){
+                throw new Exception("Issuer certificate is not valid!");
             }
         }
         this.validTo = validTo;
@@ -214,7 +214,7 @@ public class CertificateGenerator {
         }
     }
 
-    private X509Certificate readCertificateFromFile(String path) {
+    public X509Certificate readCertificateFromFile(String path) {
         File certificateFile = new File(path);
         try (InputStream inStream = new FileInputStream(certificateFile)) {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
