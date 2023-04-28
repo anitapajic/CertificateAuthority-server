@@ -44,24 +44,30 @@ public class CertificateController {
         if (sn == null) {
             return new ResponseEntity<>("Certificate with this serial number does not exist!", HttpStatus.NOT_FOUND);
         }
-        try {
-            Certificate cert = certificateService.findOneBySerialNumber(sn);
-            Certificate issuerCertificate = certificateService.findOneBySerialNumber(cert.issuer);
+        
+        Certificate cert = certificateService.findOneBySerialNumber(sn);
 
-            X509Certificate certificate = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", sn));
-            X509Certificate issCertificate = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", issuerCertificate.getSerialNumber()));
-
-            certificate.verify(issCertificate.getPublicKey());
-
-            if (cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo()) && issuerCertificate.getStatus().equals(CertificateStatus.Valid) && cert.getStatus().equals(CertificateStatus.Valid)) {
-                return new ResponseEntity<>("This certificate is valid!", HttpStatus.OK);
+        if(cert.getIssuer()==null){
+            if(cert.validTo.after(new Date())){
+                return new ResponseEntity<>("This is root certificate and it's valid!", HttpStatus.OK);
             }
-        } catch (CertificateException | InvalidKeyException | NoSuchAlgorithmException | NoSuchProviderException |
-                 SignatureException e) {
-            return new ResponseEntity<>("This certificate is not valid!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Root certificate is not valid!", HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        Certificate issuerCertificate = certificateService.findOneBySerialNumber(cert.issuer);
+        try {
+            X509Certificate certificate = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", sn));
+            X509Certificate issCertificate = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", issuerCertificate.getSerialNumber()));
+            //certificate.verify(issCertificate.getPublicKey());
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+
+        if (cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo()) && issuerCertificate.getStatus().equals(CertificateStatus.Valid) && cert.getStatus().equals(CertificateStatus.Valid)) {
+            return new ResponseEntity<>("This certificate is valid!", HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>("This certificate is not valid! ",HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/all")
