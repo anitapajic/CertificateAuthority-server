@@ -10,4 +10,7 @@ public interface CertificateRepository extends JpaRepository<Certificate, Intege
     public Certificate findOneBySerialNumber(String sn);
 
     public List<Certificate> findAll();
+
+    public List<Certificate> findAllByUsername(String username);
+    public Certificate findOneById(Integer id);
 }
