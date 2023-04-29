@@ -5,7 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Integer> {
@@ -16,6 +15,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
 
     Optional<User> findOneByUsername(String username);
     User findOneUserByUsername(String username);
+    User findOneUserByTelephone(String telephone);
 
     public Page<User> findAll(Pageable pageable);
     public User save(User user);

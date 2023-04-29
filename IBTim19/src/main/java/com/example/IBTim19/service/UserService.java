@@ -1,25 +1,23 @@
 package com.example.IBTim19.service;
 
 import com.example.IBTim19.DTO.AuthDTO;
+import com.example.IBTim19.DTO.ResetDTO;
 import com.example.IBTim19.DTO.UserDTO;
-import com.example.IBTim19.model.Activation;
+import com.example.IBTim19.model.ActivationType;
+import com.example.IBTim19.model.ResetCode;
 import com.example.IBTim19.model.Role;
 import com.example.IBTim19.model.User;
+import com.example.IBTim19.repository.ResetCodeRepository;
 import com.example.IBTim19.repository.UserRepository;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,9 +30,11 @@ public class UserService {
     @Autowired
     private AuthenticationManager authenticationManager;
     @Autowired
-    private JavaMailSender mailSender;
-    @Autowired
     private ActivationService activationService;
+    @Autowired
+    private ResetCodeRepository resetCodeRepository;
+
+
 
     public User findOneById(Integer id){
         if (userRepository.findOneById(id) == null){
@@ -80,13 +80,8 @@ public class UserService {
         user.setActive(false);
 
         user = userRepository.save(user);
-        Activation activation = new Activation();
-        activation.setId(user.getId());
-        activation.setUser(user);
-        activation.setCreationDate(LocalDateTime.now());
-        activation.setExpirationDate(LocalDateTime.now().plusYears(5));
+        activationService.createNewActivation(user, ActivationType.EMAIL, null);
 
-        activationService.save(activation);
 
         return user;
     }
@@ -99,48 +94,23 @@ public class UserService {
         return new AuthDTO(jwtToken);
     }
 
-    public void sendVerificationMail(String username, Integer id) throws MessagingException, UnsupportedEncodingException {
-        String subject = "Please verify your account";
-        String senderName = "Tim19";
+    public Integer resetPassword(ResetDTO resetDTO, String username) {
+        User user = userRepository.findOneUserByUsername(username);
 
-        String mailContent = "<p>Dear, user </p>";
-        mailContent +="<p>Please click the link below to verify your registration:</p>";
-        mailContent +="<h3><a href=\"" + "http://localhost:8085/api/user/activate/" + id + "\">VERIFY</a></h3>";
-        mailContent +="<p>Thank you<br>Team 19</p>";
 
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message);
+        ResetCode resetCode = resetCodeRepository.findOneByUsername(user.getUsername()).orElse(null);
+        if(!resetCode.getCode().equals(resetDTO.getCode())){
+            return 1; //do not match
+        }
+        if(resetCode.getDate().isBefore(LocalDateTime.now())){
+            return 2; //expired
+        }
 
-        helper.setFrom("UberAppTim19@gmail.com", senderName);
-        helper.setTo("tamara_dzambic@hotmail.com"); //ovde treba mail korisnika
-        helper.setSubject(subject);
-        helper.setText(mailContent, true);
-
-        mailSender.send(message);
-    }
-    public void sendResetCodeMail(String username, Integer id) throws MessagingException, UnsupportedEncodingException {
-        String subject = "Please verify your account";
-        String senderName = "Tim19";
-
-        String mailContent = "<p>Dear, user </p>";
-        mailContent +="<p>Please click the link below to verify your registration:</p>";
-        mailContent +="<h3><a href=\"" + "http://localhost:8085/api/user/activate/" + id + "\">VERIFY</a></h3>";
-        mailContent +="<p>Thank you<br>Team 19</p>";
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message);
-
-        helper.setFrom("UberAppTim19@gmail.com", senderName);
-        helper.setTo("tamara_dzambic@hotmail.com"); //ovde treba mail korisnika
-        helper.setSubject(subject);
-        helper.setText(mailContent, true);
-
-        mailSender.send(message);
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
+        userRepository.save(user);
+        resetCodeRepository.deleteById(resetCode.getId());
+        return 0;
     }
 
-    private Integer randInt(){
-        double r = Math.random();
-        int randomNum = (int)(r * (9999 - 1000)) + 1000;
-        return randomNum;
-    }
 }
