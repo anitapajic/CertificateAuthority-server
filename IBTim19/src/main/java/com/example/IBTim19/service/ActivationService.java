@@ -13,6 +13,8 @@ import com.sendgrid.SendGrid;
 import com.sendgrid.helpers.mail.Mail;
 import com.sendgrid.helpers.mail.objects.Content;
 import com.sendgrid.helpers.mail.objects.Email;
+import com.twilio.Twilio;
+import com.twilio.rest.api.v2010.account.Message;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +37,10 @@ public class ActivationService {
     private UserRepository userRepository;
     @Value("${app.sendgrid.key}")
     private String appKey;
+    @Value("${twilio.account.sid}")
+    private String ACCOUNT_SID;
+    @Value("${twilio.auth.token}")
+    private String AUTH_TOKEN;
 
     public Activation save(Activation activation){return activationRepository.save(activation);}
 
@@ -86,12 +92,22 @@ public class ActivationService {
     public void sendVerificationCode(String phoneNumber){
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
-        user.setTelephone(phoneNumber);
+
+        if(user.getTelephone() == null)   //ako nema sacuvaj
+            user.setTelephone(phoneNumber);
+        if(!user.getTelephone().equals(phoneNumber)) //ako ima proveri da li je to taj broj
+            return;
 
         Integer code = randInt();
 
-        String text = "Your verification code is" + code;
-        //TODO: send verification code to phone number
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+        Message message = Message.creator(
+                new com.twilio.type.PhoneNumber("+381645638986"),  //to
+                new com.twilio.type.PhoneNumber("+16205071936"),   //from
+                "Your verification code is: " + code).create();    //content
+
+        System.out.println(message.getSid());
+
 
 
         createNewActivation(user, ActivationType.PHONE, code);
@@ -149,8 +165,13 @@ public class ActivationService {
     }
 
     private void sendResetCodeToTelephone(String telephone, Integer code) {
-        String text = "Your reset code is" + code;
-        //TODO: send reset code to phone number
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
+        Message message = Message.creator(
+                new com.twilio.type.PhoneNumber("+381645638986"),  //to
+                new com.twilio.type.PhoneNumber("+16205071936"),   //from
+                "Your reset code is: " + code).create();    //content
+
+        System.out.println(message.getSid());
 
     }
 
