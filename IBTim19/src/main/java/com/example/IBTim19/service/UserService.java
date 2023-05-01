@@ -1,9 +1,13 @@
 package com.example.IBTim19.service;
 
 import com.example.IBTim19.DTO.AuthDTO;
+import com.example.IBTim19.DTO.ResetDTO;
 import com.example.IBTim19.DTO.UserDTO;
+import com.example.IBTim19.model.ActivationType;
+import com.example.IBTim19.model.ResetCode;
 import com.example.IBTim19.model.Role;
 import com.example.IBTim19.model.User;
+import com.example.IBTim19.repository.ResetCodeRepository;
 import com.example.IBTim19.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -14,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -24,6 +29,11 @@ public class UserService {
     private JWTService jwtService;
     @Autowired
     private AuthenticationManager authenticationManager;
+    @Autowired
+    private ActivationService activationService;
+    @Autowired
+    private ResetCodeRepository resetCodeRepository;
+
 
 
     public User findOneById(Integer id){
@@ -67,8 +77,13 @@ public class UserService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setRole(Role.USER);
+        user.setActive(false);
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
+        activationService.createNewActivation(user, ActivationType.EMAIL, null);
+
+
+        return user;
     }
 
     public AuthDTO login(String username, String password){
@@ -78,4 +93,24 @@ public class UserService {
 
         return new AuthDTO(jwtToken);
     }
+
+    public Integer resetPassword(ResetDTO resetDTO, String username) {
+        User user = userRepository.findOneUserByUsername(username);
+
+
+        ResetCode resetCode = resetCodeRepository.findOneByUsername(user.getUsername()).orElse(null);
+        if(!resetCode.getCode().equals(resetDTO.getCode())){
+            return 1; //do not match
+        }
+        if(resetCode.getDate().isBefore(LocalDateTime.now())){
+            return 2; //expired
+        }
+
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
+        userRepository.save(user);
+        resetCodeRepository.deleteById(resetCode.getId());
+        return 0;
+    }
+
 }

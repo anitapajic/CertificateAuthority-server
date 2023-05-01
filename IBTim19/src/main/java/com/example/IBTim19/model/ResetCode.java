@@ -5,28 +5,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 import java.time.LocalDateTime;
 
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
-public class Activation {
-
+public class ResetCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @OneToOne
-    private User user;
+    @Column(name="username",unique = true, nullable = false)
+    private String username;
 
-    private LocalDateTime creationDate;
-
-    private LocalDateTime expirationDate;
-
-    private ActivationType type;
-
+    @Column(name = "code",unique = true,  nullable = false)
     private Integer code;
 
+    private LocalDateTime date;
 }
