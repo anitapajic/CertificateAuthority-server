@@ -12,13 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SignatureException;
+
+import java.security.*;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.List;
@@ -33,8 +35,6 @@ public class CertificateController {
 
     @Autowired
     private CertificateGenerator certificateGenerator;
-    @Autowired
-    private UserService userService;
 
 
     @GetMapping(value = "/validate/{sn}")
@@ -63,12 +63,13 @@ public class CertificateController {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
 
-        if (cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo()) && issuerCertificate.getStatus().equals(CertificateStatus.Valid) && cert.getStatus().equals(CertificateStatus.Valid)) {
+        if (cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo()) && issuerCertificate.getStatus().equals(CertificateStatus.Valid) && cert.getStatus().equals(CertificateStatus.Valid) && cert.getIsRevoked().equals(false)) {
             return new ResponseEntity<>("This certificate is valid!", HttpStatus.OK);
         }
 
         return new ResponseEntity<>("This certificate is not valid! ",HttpStatus.BAD_REQUEST);
     }
+
 
     @GetMapping("/all")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
@@ -82,6 +83,39 @@ public class CertificateController {
     public Resource downloadCertificate(@PathVariable Integer id){
         String serialNumber = certificateService.findOneById(id).getSerialNumber();
         return new FileSystemResource("crts/" + serialNumber + ".crt");
+    }
+
+    @PostMapping(value="/redraw/{sn}")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity redrawCertificate(@PathVariable String sn){
+        List<Certificate> issuedCertificates = certificateService.findAllByIssuer(sn);
+
+        //Svaki sertifikat koji je izdat od strane pocetnog sertifikata se povlaci
+        for(Certificate issuedCertificate : issuedCertificates) {
+            issuedCertificate.setIsRevoked(true);
+            issuedCertificate.setStatus(CertificateStatus.NotValid);
+
+            List<Certificate> subissuedCerticiates = certificateService.findAllByIssuer(issuedCertificate.getSerialNumber());
+            //Svaki sertifikat koji je izdat od strane sertifikata, kojeg je izdao pocetni sertifikat, se povlaci
+            for(Certificate subissuedCertificate: subissuedCerticiates){
+                subissuedCertificate.setIsRevoked(true);
+                subissuedCertificate.setStatus(CertificateStatus.NotValid);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    @GetMapping(value = "/validateByCopy")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity validateByCopy(@RequestParam("file") MultipartFile file) throws IOException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
+        ///TODO : ko zna da l radi
+        byte[] certBytes = file.getBytes();
+        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+        Certificate issuerCertificate = certificateService.findOneBySerialNumber(String.valueOf(cert.getSerialNumber()));
+        X509Certificate issuer = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", issuerCertificate.getSerialNumber()));
+        PublicKey publicKey = issuer.getPublicKey();
+        cert.verify(publicKey);
+        return new ResponseEntity<>("Certificate is valid!", HttpStatus.OK);
     }
 
 

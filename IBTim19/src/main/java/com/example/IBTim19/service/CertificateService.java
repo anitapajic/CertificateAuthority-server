@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CertificateService {
@@ -28,4 +29,7 @@ public class CertificateService {
     }
     public Certificate findOneById(Integer id){return this.certificateRepository.findOneById(id);}
 
+    public List<Certificate> findAllByIssuer(String issuer){
+        return this.certificateRepository.findAllByIssuer(issuer).orElse(null);
+    }
 }
