@@ -4,7 +4,6 @@ import com.example.IBTim19.model.Certificate;
 import com.example.IBTim19.model.CertificateStatus;
 import com.example.IBTim19.service.CertificateGenerator;
 import com.example.IBTim19.service.CertificateService;
-import com.example.IBTim19.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
@@ -16,8 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.math.BigInteger;
-
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -44,9 +41,8 @@ public class CertificateController {
         if (sn == null) {
             return new ResponseEntity<>("Certificate with this serial number does not exist!", HttpStatus.NOT_FOUND);
         }
-        
+        System.out.println(sn);
         Certificate cert = certificateService.findOneBySerialNumber(sn);
-
         if(cert.getIssuer()==null){
             if(cert.validTo.after(new Date())){
                 return new ResponseEntity<>("This is root certificate and it's valid!", HttpStatus.OK);
@@ -88,18 +84,28 @@ public class CertificateController {
     @PostMapping(value="/redraw/{sn}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity redrawCertificate(@PathVariable String sn){
+
+
+        Certificate myCert = certificateService.findOneBySerialNumber(sn);
+        //TODO: proveriti da li je root (one ne moze da bude povucen)
+        myCert.setIsRevoked(true);
+        certificateService.save(myCert);
+
         List<Certificate> issuedCertificates = certificateService.findAllByIssuer(sn);
 
+        //TODO: u while petlji prolaziti kroz subissuedCerts ako je cert Intermediate
         //Svaki sertifikat koji je izdat od strane pocetnog sertifikata se povlaci
         for(Certificate issuedCertificate : issuedCertificates) {
             issuedCertificate.setIsRevoked(true);
             issuedCertificate.setStatus(CertificateStatus.NotValid);
+            certificateService.save(issuedCertificate);
 
             List<Certificate> subissuedCerticiates = certificateService.findAllByIssuer(issuedCertificate.getSerialNumber());
             //Svaki sertifikat koji je izdat od strane sertifikata, kojeg je izdao pocetni sertifikat, se povlaci
             for(Certificate subissuedCertificate: subissuedCerticiates){
                 subissuedCertificate.setIsRevoked(true);
                 subissuedCertificate.setStatus(CertificateStatus.NotValid);
+                certificateService.save(subissuedCertificate);
             }
         }
         return new ResponseEntity<>(HttpStatus.OK);

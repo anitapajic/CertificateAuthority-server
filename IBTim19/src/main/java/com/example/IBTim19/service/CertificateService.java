@@ -5,12 +5,7 @@ import com.example.IBTim19.repository.CertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class CertificateService {
@@ -19,6 +14,7 @@ public class CertificateService {
     private CertificateRepository certificateRepository;
 
     public Certificate findOneBySerialNumber(String sn) {
+
         return this.certificateRepository.findOneBySerialNumber(sn);
     }
 
@@ -31,5 +27,9 @@ public class CertificateService {
 
     public List<Certificate> findAllByIssuer(String issuer){
         return this.certificateRepository.findAllByIssuer(issuer).orElse(null);
+    }
+
+    public Certificate save(Certificate cert){
+        return this.certificateRepository.save(cert);
     }
 }
