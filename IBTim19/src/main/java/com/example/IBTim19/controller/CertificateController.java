@@ -2,6 +2,7 @@ package com.example.IBTim19.controller;
 
 import com.example.IBTim19.model.Certificate;
 import com.example.IBTim19.model.CertificateStatus;
+import com.example.IBTim19.model.CertificateType;
 import com.example.IBTim19.service.CertificateGenerator;
 import com.example.IBTim19.service.CertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,29 +86,18 @@ public class CertificateController {
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity redrawCertificate(@PathVariable String sn){
 
-
         Certificate myCert = certificateService.findOneBySerialNumber(sn);
-        //TODO: proveriti da li je root (one ne moze da bude povucen)
+
+        if(myCert.certificateType.equals(CertificateType.Root)){
+            return new ResponseEntity<>("You can't redraw root certificate!", HttpStatus.BAD_REQUEST);
+        }
+
         myCert.setIsRevoked(true);
         certificateService.save(myCert);
 
         List<Certificate> issuedCertificates = certificateService.findAllByIssuer(sn);
+        certificateService.setRevokedStatus(issuedCertificates);
 
-        //TODO: u while petlji prolaziti kroz subissuedCerts ako je cert Intermediate
-        //Svaki sertifikat koji je izdat od strane pocetnog sertifikata se povlaci
-        for(Certificate issuedCertificate : issuedCertificates) {
-            issuedCertificate.setIsRevoked(true);
-            issuedCertificate.setStatus(CertificateStatus.NotValid);
-            certificateService.save(issuedCertificate);
-
-            List<Certificate> subissuedCerticiates = certificateService.findAllByIssuer(issuedCertificate.getSerialNumber());
-            //Svaki sertifikat koji je izdat od strane sertifikata, kojeg je izdao pocetni sertifikat, se povlaci
-            for(Certificate subissuedCertificate: subissuedCerticiates){
-                subissuedCertificate.setIsRevoked(true);
-                subissuedCertificate.setStatus(CertificateStatus.NotValid);
-                certificateService.save(subissuedCertificate);
-            }
-        }
         return new ResponseEntity<>(HttpStatus.OK);
     }
     @GetMapping(value = "/validateByCopy")
