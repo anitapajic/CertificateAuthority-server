@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping(value = "/api/user")
@@ -43,16 +44,32 @@ public class AuthenticationController {
             consumes = "application/json")
     public ResponseEntity registration(@RequestBody UserDTO userDTO) throws MessagingException, UnsupportedEncodingException {
 
+        HashMap<String, String> resp = new HashMap();
+
+
         // if passenger already exist
         if (userService.findOneByUsername(userDTO.getUsername()) != null) {
-            return new ResponseEntity<>("User with that username already exists!", HttpStatus.BAD_REQUEST);
+            resp.put("response","User with that username already exists!");
+            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
         }
 
         User user = userService.createNewUser(userDTO);
         activationService.sendVerificationMail(user.getUsername(), user.getId());
 
+        resp.put("response","Check your email");
 
-        return new ResponseEntity<>("Check your email", HttpStatus.CREATED);
+        return new ResponseEntity<>(resp, HttpStatus.CREATED);
+    }
+
+    //TODO: logout
+
+    @GetMapping(
+            value = "/logout")
+    @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
+    public ResponseEntity logout(){
+
+
+        return new ResponseEntity<>("Logout", HttpStatus.OK);
     }
 
     //ACTIVATE USER ACCOUNT  /api/user/activate/activationId
