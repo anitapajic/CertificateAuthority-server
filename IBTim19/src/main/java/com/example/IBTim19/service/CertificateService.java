@@ -37,11 +37,9 @@ public class CertificateService {
 
     public void setRevokedStatus(List<Certificate> issuedCertificates){
         for(Certificate c : issuedCertificates){
-            if(c.getCertificateType().equals(CertificateType.End)){
-                c.setIsRevoked(true);
-                certificateRepository.save(c);
-            }
-            else{
+            c.setIsRevoked(true);
+            certificateRepository.save(c);
+            if(c.getCertificateType().equals(CertificateType.Intermediate)){
                 List<Certificate> subissuedCertificates = certificateRepository.findAllByIssuer(c.getSerialNumber()).get();
                 setRevokedStatus(subissuedCertificates);
             }
