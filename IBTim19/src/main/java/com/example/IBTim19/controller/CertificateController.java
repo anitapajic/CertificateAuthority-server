@@ -25,7 +25,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/api/certificate")
-@CrossOrigin(value="*")
 public class CertificateController {
 
     @Autowired

@@ -1,9 +1,6 @@
 package com.example.IBTim19.controller;
 
-import com.example.IBTim19.DTO.AuthDTO;
-import com.example.IBTim19.DTO.LoginDTO;
-import com.example.IBTim19.DTO.ResetDTO;
-import com.example.IBTim19.DTO.UserDTO;
+import com.example.IBTim19.DTO.*;
 import com.example.IBTim19.model.Activation;
 import com.example.IBTim19.model.User;
 import com.example.IBTim19.service.ActivationService;
@@ -21,7 +18,6 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping(value = "/api/user")
-@CrossOrigin(value="*")
 public class AuthenticationController {
 
     @Autowired
@@ -34,6 +30,10 @@ public class AuthenticationController {
             consumes = "application/json")
     public ResponseEntity login(@RequestBody LoginDTO loginDTO) throws MessagingException, UnsupportedEncodingException {
         AuthDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        if(auth==null){
+            return new ResponseEntity<>("Activate your account", HttpStatus.BAD_REQUEST);
+
+        }
 
         return new ResponseEntity<>(auth, HttpStatus.OK);
     }
@@ -85,7 +85,7 @@ public class AuthenticationController {
                 return new ResponseEntity<>("Activation expired. Register again!", HttpStatus.BAD_REQUEST);
             }
             User user = activation.getUser();
-            user.setActive(true);
+            user.setIsActive(1);
             userService.save(user);
 
 
@@ -113,50 +113,58 @@ public class AuthenticationController {
         Integer response = activationService.verifyPhoneNumber(code);
 
         if (response == 1) {
-            return new ResponseEntity<>("Verification does not exist!", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Verification does not exist!"); }}, HttpStatus.NOT_FOUND);
         }
         else if (response == 2) {
-            return new ResponseEntity<>("Entered code is wrong!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Entered code is wrong!"); }}, HttpStatus.BAD_REQUEST);
         }
         else if (response == 3) {
-            return new ResponseEntity<>("Verification expired. Try again!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Verification expired. Try again!"); }}, HttpStatus.BAD_REQUEST);
 
         }
-        return new ResponseEntity<>("Successful phone verification!", HttpStatus.OK);
+        return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Successful phone verification!"); }}, HttpStatus.OK);
     }
 
-    @GetMapping(value = "/resetPassword/{type}")
-    public ResponseEntity getResetCode(@PathVariable Integer type, @RequestBody UserDTO user) {
+    @PostMapping(value = "/getResetCode")
+    public ResponseEntity getResetCode(@RequestBody ResetDTO reset) {
+        Integer res;
 
-        //0 phone
-        //1 mail
-
-        if(type == 1){
-            activationService.sendResetCode(type, user.getUsername());
-            return new ResponseEntity<>("Check your mail", HttpStatus.CREATED);
+        if(reset.getType().equals(ResetType.MAIL)){
+            res = activationService.sendResetCode(ResetType.MAIL, reset.getUsername());
         }
-        activationService.sendResetCode(type, user.getTelephone());
+        else{
+            res = activationService.sendResetCode(ResetType.TELEPHONE, reset.getTelephone());
+        }
 
-        return new ResponseEntity<>("Check your phone", HttpStatus.CREATED);
+        if (res == 0){
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Check your phone"); }}, HttpStatus.CREATED);
+
+        } else if (res == 1) {
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Check your mail"); }}, HttpStatus.CREATED);
+
+        }
+        return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "User doesn't exist"); }}, HttpStatus.BAD_REQUEST);
+
     }
 
-    @PostMapping(value = "/resetPassword/{username}")
-    public ResponseEntity resetPassword(@RequestBody ResetDTO resetDTO, @PathVariable String username) {
+    @PostMapping(value = "/resetPassword")
+    public ResponseEntity resetPassword(@RequestBody ResetDTO resetDTO) {
 
-        if(!resetDTO.getNewPassword().equals(resetDTO.getNewConfirmed()))
+        if(!resetDTO.getNewPassword().equals(resetDTO.getNewConfirmed())) {
             return new ResponseEntity<>("New and confirmed passwords do not match", HttpStatus.BAD_REQUEST);
+        }
 
-        Integer res =  userService.resetPassword(resetDTO, username);
+        Integer res =  userService.resetPassword(resetDTO, resetDTO.getUsername());
 
         if(res == 1){
-            return new ResponseEntity<>("Wrong code", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Wrong code"); }}, HttpStatus.BAD_REQUEST);
 
         } else if (res == 2) {
-            return new ResponseEntity<>("Code expired", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Code expired"); }}, HttpStatus.BAD_REQUEST);
 
         }
 
-        return new ResponseEntity<>("Successfully changed password", HttpStatus.OK);
+        return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Successfully changed password"); }}, HttpStatus.OK);
     }
 
 }

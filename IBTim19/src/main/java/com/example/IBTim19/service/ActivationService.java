@@ -1,5 +1,6 @@
 package com.example.IBTim19.service;
 
+import com.example.IBTim19.DTO.ResetType;
 import com.example.IBTim19.model.Activation;
 import com.example.IBTim19.model.ActivationType;
 import com.example.IBTim19.model.ResetCode;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class ActivationService {
@@ -128,18 +130,27 @@ public class ActivationService {
             return 3;  //expired
         }
 
+        user.setIsActive(2);
+        userRepository.save(user);
+
         return 0;
     }
 
 
-    public Integer sendResetCode(Integer type, String userr) {
+    public Integer sendResetCode(ResetType type, String userr) {
+        Optional<User> userO;
         User user;
-
-        if(type == 0){
-            user = userRepository.findOneUserByTelephone(userr);
+        if(type.equals(ResetType.TELEPHONE)){
+            userO = userRepository.findOneUserByTelephone(userr);
 
         }else{
-            user = userRepository.findOneUserByUsername(userr);
+            userO = userRepository.findUserByUsername(userr);
+        }
+        if(userO.isPresent()){
+            user = userO.get();
+        }
+        else {
+            return 2;
         }
 
         Integer code = randInt();
@@ -152,7 +163,7 @@ public class ActivationService {
         resetCodeRepository.save(resetCode);
 
 
-        if(type==0){
+        if(type.equals(ResetType.TELEPHONE)){
             sendResetCodeToTelephone(user.getTelephone(), code);
             return 0;
         }
@@ -161,7 +172,7 @@ public class ActivationService {
         } catch (MessagingException | UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-        return 0;
+        return 1;
     }
 
     private void sendResetCodeToTelephone(String telephone, Integer code) {

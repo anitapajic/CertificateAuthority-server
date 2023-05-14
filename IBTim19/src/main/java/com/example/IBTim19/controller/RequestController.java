@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/requests")
-@CrossOrigin("*")
 public class RequestController {
     @Autowired
     private RequestService requestService;

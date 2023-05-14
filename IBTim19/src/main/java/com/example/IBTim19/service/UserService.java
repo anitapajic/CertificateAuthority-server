@@ -77,7 +77,7 @@ public class UserService {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         user.setRole(Role.USER);
-        user.setActive(false);
+        user.setIsActive(0);
 
         user = userRepository.save(user);
         activationService.createNewActivation(user, ActivationType.EMAIL, null);
@@ -89,7 +89,14 @@ public class UserService {
     public AuthDTO login(String username, String password){
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         User user = userRepository.findOneUserByUsername(username);
+
+
+        if(user.getIsActive() == 0){
+            return null;
+        }
         String jwtToken = jwtService.generateToken(user);
+
+
 
         return new AuthDTO(jwtToken);
     }
@@ -100,17 +107,20 @@ public class UserService {
 
         ResetCode resetCode = resetCodeRepository.findOneByUsername(user.getUsername()).orElse(null);
         if(!resetCode.getCode().equals(resetDTO.getCode())){
+
             return 1; //do not match
         }
         if(resetCode.getDate().isBefore(LocalDateTime.now())){
+            resetCodeRepository.deleteById(resetCode.getId());
             return 2; //expired
-        }
+        }else{
+            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
+            userRepository.save(user);
+            resetCodeRepository.deleteById(resetCode.getId());
 
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
-        userRepository.save(user);
-        resetCodeRepository.deleteById(resetCode.getId());
-        return 0;
+            return 0;
+        }
     }
 
 }

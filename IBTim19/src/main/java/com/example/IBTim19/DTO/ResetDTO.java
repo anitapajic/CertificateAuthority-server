@@ -8,8 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ResetDTO {
+    private String username;
+    private String telephone;
+    private ResetType type;
+
     private Integer code;
-    private String oldPassword;
     private String newPassword;
     private String newConfirmed;
 
