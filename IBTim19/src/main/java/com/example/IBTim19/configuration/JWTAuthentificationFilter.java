@@ -28,7 +28,6 @@ public class JWTAuthentificationFilter extends OncePerRequestFilter {
         final String jwt = request.getHeader("Authorization");
         final String username;
 
-        System.out.println(jwt);
         if (jwt == null || jwt.startsWith("Bearer")){
             filterChain.doFilter(request, response);
             return;
