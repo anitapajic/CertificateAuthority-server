@@ -62,7 +62,7 @@ public class RequestController {
         }
     }
 
-    @PostMapping(value = "/accept/{id}",
+    @GetMapping(value = "/accept/{id}",
             consumes = "application/json")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity acceptRequest(@PathVariable Integer id){

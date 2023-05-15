@@ -81,7 +81,7 @@ public class CertificateController {
         return new FileSystemResource("crts/" + serialNumber + ".crt");
     }
 
-    @PostMapping(value="/redraw/{sn}")
+    @GetMapping(value="/redraw/{sn}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity redrawCertificate(@PathVariable String sn){
 
@@ -99,7 +99,7 @@ public class CertificateController {
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    @GetMapping(value = "/validateByCopy")
+    @PostMapping(value = "/validateByCopy")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity validateByCopy(@RequestParam("file") MultipartFile file) throws IOException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
         ///TODO : ko zna da l radi
