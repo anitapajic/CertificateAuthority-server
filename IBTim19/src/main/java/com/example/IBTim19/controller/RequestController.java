@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/requests")
-@CrossOrigin("*")
 public class RequestController {
     @Autowired
     private RequestService requestService;
@@ -63,7 +62,7 @@ public class RequestController {
         }
     }
 
-    @PostMapping(value = "/accept/{id}",
+    @GetMapping(value = "/accept/{id}",
             consumes = "application/json")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity acceptRequest(@PathVariable Integer id){

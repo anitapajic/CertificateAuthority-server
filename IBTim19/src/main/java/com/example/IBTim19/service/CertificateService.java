@@ -1,15 +1,13 @@
 package com.example.IBTim19.service;
 
 import com.example.IBTim19.model.Certificate;
+import com.example.IBTim19.model.CertificateType;
 import com.example.IBTim19.repository.CertificateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CertificateService {
@@ -18,6 +16,7 @@ public class CertificateService {
     private CertificateRepository certificateRepository;
 
     public Certificate findOneBySerialNumber(String sn) {
+
         return this.certificateRepository.findOneBySerialNumber(sn);
     }
 
@@ -28,4 +27,22 @@ public class CertificateService {
     }
     public Certificate findOneById(Integer id){return this.certificateRepository.findOneById(id);}
 
+    public List<Certificate> findAllByIssuer(String issuer){
+        return this.certificateRepository.findAllByIssuer(issuer).orElse(null);
+    }
+
+    public Certificate save(Certificate cert){
+        return this.certificateRepository.save(cert);
+    }
+
+    public void setRevokedStatus(List<Certificate> issuedCertificates){
+        for(Certificate c : issuedCertificates){
+            c.setIsRevoked(true);
+            certificateRepository.save(c);
+            if(c.getCertificateType().equals(CertificateType.Intermediate)){
+                List<Certificate> subissuedCertificates = certificateRepository.findAllByIssuer(c.getSerialNumber()).get();
+                setRevokedStatus(subissuedCertificates);
+            }
+        }
+    }
 }

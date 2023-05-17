@@ -33,7 +33,8 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
     @Column
-    private boolean isActive;
+    private Integer isActive;
+//  0 nije aktivan 1 verifikovao je mail 2 verifikovao je i telefon
 
 
     @Override

@@ -15,7 +15,6 @@ import java.util.Date;
 
 @RestController
 @RequestMapping(value = "/api")
-@CrossOrigin(value="*")
 public class UserController {
 
 

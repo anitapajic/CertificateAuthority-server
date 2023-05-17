@@ -5,6 +5,7 @@ import com.example.IBTim19.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface CertificateRepository extends JpaRepository<Certificate, Integer> {
     public Certificate findOneBySerialNumber(String sn);
@@ -13,4 +14,5 @@ public interface CertificateRepository extends JpaRepository<Certificate, Intege
 
     public List<Certificate> findAllByUsername(String username);
     public Certificate findOneById(Integer id);
+    public Optional<List<Certificate>> findAllByIssuer(String issuer);
 }

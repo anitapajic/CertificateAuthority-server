@@ -88,7 +88,7 @@ public class CertificateGenerator {
         certificateForDb.setUsername(subject.getUsername());
         certificateForDb.setValidFrom(cert.getNotBefore());
         certificateForDb.setValidTo(cert.getNotAfter());
-
+        certificateForDb.setIsRevoked(false);
         certificateRepository.save(certificateForDb);
 
         Files.write(Paths.get(certDir, certificateForDb.getSerialNumber() + ".crt"),
