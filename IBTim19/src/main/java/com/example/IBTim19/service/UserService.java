@@ -46,7 +46,9 @@ public class UserService {
     public User findOneByUsername(String username){
         return userRepository.findOneByUsername(username).orElse(null);
     }
-
+    public User findOneByTelephone(String telephone){
+        return userRepository.findOneUserByTelephone(telephone).orElse(null);
+    }
     public User findIdByUsername(String username){
         return userRepository.findOneByUsername(username).orElse(null);
 

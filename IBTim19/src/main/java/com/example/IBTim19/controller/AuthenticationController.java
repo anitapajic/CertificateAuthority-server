@@ -45,7 +45,10 @@ public class AuthenticationController {
     public ResponseEntity registration(@RequestBody UserDTO userDTO) throws MessagingException, UnsupportedEncodingException {
 
         HashMap<String, String> resp = new HashMap();
-
+        if(userService.findOneByTelephone(userDTO.getTelephone()) != null){
+            resp.put("response","User with that telephone number already exists!");
+            return new ResponseEntity<>(resp, HttpStatus.BAD_REQUEST);
+        }
 
         // if passenger already exist
         if (userService.findOneByUsername(userDTO.getUsername()) != null) {
