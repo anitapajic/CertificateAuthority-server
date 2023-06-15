@@ -30,10 +30,13 @@ public class AuthenticationController {
             consumes = "application/json")
     public ResponseEntity login(@RequestBody LoginDTO loginDTO) throws MessagingException, UnsupportedEncodingException {
         AuthDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword());
-        if(auth==null){
+        if(auth == null){
             return new ResponseEntity<>("Activate your account", HttpStatus.BAD_REQUEST);
-
         }
+        if(auth.getToken().equals("x")){
+            return new ResponseEntity<>("You need to change your password!", HttpStatus.BAD_REQUEST);
+        }
+
 
         return new ResponseEntity<>(auth, HttpStatus.OK);
     }
@@ -157,7 +160,7 @@ public class AuthenticationController {
             return new ResponseEntity<>("New and confirmed passwords do not match", HttpStatus.BAD_REQUEST);
         }
 
-        Integer res =  userService.resetPassword(resetDTO, resetDTO.getUsername());
+        Integer res =  userService.resetPassword(resetDTO);
 
         if(res == 1){
             return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Wrong code"); }}, HttpStatus.BAD_REQUEST);

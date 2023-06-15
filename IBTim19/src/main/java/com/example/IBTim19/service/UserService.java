@@ -2,6 +2,7 @@ package com.example.IBTim19.service;
 
 import com.example.IBTim19.DTO.AuthDTO;
 import com.example.IBTim19.DTO.ResetDTO;
+import com.example.IBTim19.DTO.ResetType;
 import com.example.IBTim19.DTO.UserDTO;
 import com.example.IBTim19.model.ActivationType;
 import com.example.IBTim19.model.ResetCode;
@@ -9,6 +10,7 @@ import com.example.IBTim19.model.Role;
 import com.example.IBTim19.model.User;
 import com.example.IBTim19.repository.ResetCodeRepository;
 import com.example.IBTim19.repository.UserRepository;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -89,10 +91,15 @@ public class UserService {
     }
 
     public AuthDTO login(String username, String password){
+
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+
         User user = userRepository.findOneUserByUsername(username);
 
-
+        if(user.getLastChanged().isBefore(LocalDateTime.now().minusMonths(3))){
+            String res = "x";
+            return new AuthDTO(res);
+        }
         if(user.getIsActive() == 0){
             return null;
         }
@@ -103,8 +110,14 @@ public class UserService {
         return new AuthDTO(jwtToken);
     }
 
-    public Integer resetPassword(ResetDTO resetDTO, String username) {
-        User user = userRepository.findOneUserByUsername(username);
+    public Integer resetPassword(ResetDTO resetDTO) {
+
+        User user;
+        if(resetDTO.getType().equals(ResetType.MAIL)){
+            user = userRepository.findOneUserByUsername(resetDTO.getUsername());
+        }else{
+            user = userRepository.findOneUserByTelephone(resetDTO.getTelephone()).get();
+        }
 
 
         ResetCode resetCode = resetCodeRepository.findOneByUsername(user.getUsername()).orElse(null);
@@ -118,6 +131,7 @@ public class UserService {
         }else{
             PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
+            user.setLastChanged(LocalDateTime.now());
             userRepository.save(user);
             resetCodeRepository.deleteById(resetCode.getId());
 

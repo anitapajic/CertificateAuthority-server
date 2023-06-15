@@ -108,9 +108,6 @@ public class ActivationService {
                 new com.twilio.type.PhoneNumber("+16205071936"),   //from
                 "Your verification code is: " + code).create();    //content
 
-        System.out.println(message.getSid());
-
-
 
         createNewActivation(user, ActivationType.PHONE, code);
     }
@@ -182,7 +179,6 @@ public class ActivationService {
                 new com.twilio.type.PhoneNumber("+16205071936"),   //from
                 "Your reset code is: " + code).create();    //content
 
-        System.out.println(message.getSid());
 
     }
 
