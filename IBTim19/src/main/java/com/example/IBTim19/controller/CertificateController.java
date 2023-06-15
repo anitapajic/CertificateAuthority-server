@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -101,16 +102,22 @@ public class CertificateController {
     }
     @PostMapping(value = "/validateByCopy")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
-    public ResponseEntity validateByCopy(@RequestParam("file") MultipartFile file) throws IOException, CertificateException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException, NoSuchAlgorithmException, SignatureException, InvalidKeyException, NoSuchProviderException {
-        ///TODO : ko zna da l radi
-        byte[] certBytes = file.getBytes();
-        CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-        X509Certificate cert = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
-        Certificate issuerCertificate = certificateService.findOneBySerialNumber(String.valueOf(cert.getSerialNumber()));
-        X509Certificate issuer = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", issuerCertificate.getSerialNumber()));
-        PublicKey publicKey = issuer.getPublicKey();
-        cert.verify(publicKey);
-        return new ResponseEntity<>("Certificate is valid!", HttpStatus.OK);
+    public ResponseEntity validateByCopy(@RequestParam("File") MultipartFile file) {
+        try {
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            byte[] certBytes = file.getBytes();
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(certBytes);
+            X509Certificate cert = (X509Certificate) certificateFactory.generateCertificate(byteArrayInputStream);
+            BigInteger serialNumberBigInt = cert.getSerialNumber();
+            String serialNumberHex = serialNumberBigInt.toString(16);
+
+            validate(serialNumberHex);
+            return new ResponseEntity<>("This certificate is valid.",HttpStatus.OK);
+
+
+        } catch (IOException | CertificateException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
 
