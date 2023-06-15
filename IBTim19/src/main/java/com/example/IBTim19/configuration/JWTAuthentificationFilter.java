@@ -33,7 +33,7 @@ public class JWTAuthentificationFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
             return;
         }
-        jwt = jwt.substring(7);
+//        jwt = jwt.substring(7);
         
         username = jwtService.extractUsername(jwt);
         if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
