@@ -168,6 +168,9 @@ public class AuthenticationController {
         } else if (res == 2) {
             return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Code expired"); }}, HttpStatus.BAD_REQUEST);
 
+        } else if (res == 3){
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Can't use old password"); }}, HttpStatus.BAD_REQUEST);
+
         }
 
         return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Successfully changed password"); }}, HttpStatus.OK);

@@ -4,10 +4,8 @@ import com.example.IBTim19.DTO.AuthDTO;
 import com.example.IBTim19.DTO.ResetDTO;
 import com.example.IBTim19.DTO.ResetType;
 import com.example.IBTim19.DTO.UserDTO;
-import com.example.IBTim19.model.ActivationType;
-import com.example.IBTim19.model.ResetCode;
-import com.example.IBTim19.model.Role;
-import com.example.IBTim19.model.User;
+import com.example.IBTim19.model.*;
+import com.example.IBTim19.repository.PasswordHistoryRepository;
 import com.example.IBTim19.repository.ResetCodeRepository;
 import com.example.IBTim19.repository.UserRepository;
 import org.joda.time.DateTime;
@@ -35,6 +33,8 @@ public class UserService {
     private ActivationService activationService;
     @Autowired
     private ResetCodeRepository resetCodeRepository;
+    @Autowired
+    private PasswordHistoryRepository passwordHistoryRepository;
 
 
 
@@ -113,12 +113,22 @@ public class UserService {
     public Integer resetPassword(ResetDTO resetDTO) {
 
         User user;
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+
         if(resetDTO.getType().equals(ResetType.MAIL)){
             user = userRepository.findOneUserByUsername(resetDTO.getUsername());
         }else{
             user = userRepository.findOneUserByTelephone(resetDTO.getTelephone()).get();
         }
 
+        List<PasswordHistory> passwords = passwordHistoryRepository.findAllByUsername(user.getUsername());
+
+        for( PasswordHistory ph : passwords){
+            if (passwordEncoder.matches(resetDTO.getNewPassword(), ph.getPassword())){
+                return 3; //old password
+            }
+        }
 
         ResetCode resetCode = resetCodeRepository.findOneByUsername(user.getUsername()).orElse(null);
         if(!resetCode.getCode().equals(resetDTO.getCode())){
@@ -129,11 +139,17 @@ public class UserService {
             resetCodeRepository.deleteById(resetCode.getId());
             return 2; //expired
         }else{
-            PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
             user.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
             user.setLastChanged(LocalDateTime.now());
             userRepository.save(user);
+
             resetCodeRepository.deleteById(resetCode.getId());
+
+            PasswordHistory ph = new PasswordHistory();
+            ph.setUsername(user.getUsername());
+            ph.setPassword(passwordEncoder.encode(resetDTO.getNewPassword()));
+            passwordHistoryRepository.save(ph);
+
 
             return 0;
         }
