@@ -29,13 +29,25 @@ public class AuthenticationController {
             value = "/login",
             consumes = "application/json")
     public ResponseEntity login(@RequestBody LoginDTO loginDTO) throws MessagingException, UnsupportedEncodingException {
-        AuthDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword());
+       System.out.println("LOGIN");
+        AuthDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword(), loginDTO.getCode());
         if(auth==null){
             return new ResponseEntity<>("Activate your account", HttpStatus.BAD_REQUEST);
 
         }
 
         return new ResponseEntity<>(auth, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/twoFactor")
+    public ResponseEntity twoFactor(@RequestBody LoginDTO loginDTO){
+
+        userService.sentdTwoFactoreCode(loginDTO);
+
+        HashMap<String, String> resp = new HashMap<>();
+        resp.put("response","Check your email");
+
+        return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
 
