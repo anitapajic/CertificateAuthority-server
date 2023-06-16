@@ -65,13 +65,30 @@ public class AuthenticationController {
             value = "/login",
             consumes = "application/json")
     public ResponseEntity login(@RequestBody LoginDTO loginDTO) throws MessagingException, UnsupportedEncodingException {
-        AuthDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword());
+        AuthDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword(), loginDTO.getCode());
         if(auth==null){
             return new ResponseEntity<>("Activate your account", HttpStatus.BAD_REQUEST);
-
+        }
+        if(auth.getToken().equals("x")){
+            return new ResponseEntity<>("You need to change your password!", HttpStatus.BAD_REQUEST);
+        }
+        if(auth.getToken().equals("e")){
+            return new ResponseEntity<>("Incorrect password or email!", HttpStatus.BAD_REQUEST);
         }
 
+
         return new ResponseEntity<>(auth, HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/twoFactor")
+    public ResponseEntity twoFactor(@RequestBody LoginDTO loginDTO){
+
+        userService.sentdTwoFactoreCode(loginDTO);
+
+        HashMap<String, String> resp = new HashMap<>();
+        resp.put("response","Check your email");
+
+        return new ResponseEntity<>(resp, HttpStatus.OK);
     }
 
 
@@ -193,13 +210,16 @@ public class AuthenticationController {
             return new ResponseEntity<>("New and confirmed passwords do not match", HttpStatus.BAD_REQUEST);
         }
 
-        Integer res =  userService.resetPassword(resetDTO, resetDTO.getUsername());
+        Integer res =  userService.resetPassword(resetDTO);
 
         if(res == 1){
             return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Wrong code"); }}, HttpStatus.BAD_REQUEST);
 
         } else if (res == 2) {
             return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Code expired"); }}, HttpStatus.BAD_REQUEST);
+
+        } else if (res == 3){
+            return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Can't use old password"); }}, HttpStatus.BAD_REQUEST);
 
         }
 
