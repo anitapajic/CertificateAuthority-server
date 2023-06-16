@@ -104,7 +104,14 @@ public class UserService {
     }
 
     public AuthDTO login(String username, String password, String code){
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+
+        }catch (Exception e){
+            String res = "e";
+            return new AuthDTO(res);
+        }
 
         User user = userRepository.findOneUserByUsername(username);
         TwoFactor twoFactor = twoFactorRepository.findOneByUserId(user.getId()).orElse(null);
@@ -121,6 +128,7 @@ public class UserService {
             return null;
         }
         String jwtToken = jwtService.generateToken(user);
+
         twoFactorRepository.deleteById(twoFactor.getId());
 
 
