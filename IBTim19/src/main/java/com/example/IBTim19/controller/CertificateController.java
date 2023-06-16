@@ -97,10 +97,6 @@ public class CertificateController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User loggedIn = (User) authentication.getPrincipal();
 
-        if(loggedIn.getRole().equals(Role.USER) && !user.getUsername().equals(loggedIn.getUsername())){
-            return new ResponseEntity<>("You are not authorized to download this certificate.", HttpStatus.BAD_REQUEST);
-        }
-
         String serialNumber = certificate.getSerialNumber();
         String zipFileName = "zipfiles/" + serialNumber + ".zip";
 
@@ -111,11 +107,14 @@ public class CertificateController {
             Files.copy(crtResource.getFile().toPath(), zipOut);
             zipOut.closeEntry();
 
-            // for .key file
-            FileSystemResource keyResource = new FileSystemResource("keys/" + serialNumber + ".key");
-            zipOut.putNextEntry(new ZipEntry(keyResource.getFilename()));
-            Files.copy(keyResource.getFile().toPath(), zipOut);
-            zipOut.closeEntry();
+            if(loggedIn.getUsername().equals(user.getUsername())){
+                // for .key file
+                FileSystemResource keyResource = new FileSystemResource("keys/" + serialNumber + ".key");
+                zipOut.putNextEntry(new ZipEntry(keyResource.getFilename()));
+                Files.copy(keyResource.getFile().toPath(), zipOut);
+                zipOut.closeEntry();
+            }
+
         }
 
         return ResponseEntity.ok()
