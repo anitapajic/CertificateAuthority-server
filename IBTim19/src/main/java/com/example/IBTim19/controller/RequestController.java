@@ -4,6 +4,7 @@ import com.example.IBTim19.DTO.RequestDTO;
 import com.example.IBTim19.model.*;
 import com.example.IBTim19.service.CertificateService;
 import com.example.IBTim19.service.RequestService;
+import com.google.common.collect.HashBiMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -62,13 +64,13 @@ public class RequestController {
         }
     }
 
-    @GetMapping(value = "/accept/{id}",
-            consumes = "application/json")
+    @GetMapping(value = "/accept/{id}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity acceptRequest(@PathVariable Integer id){
 
         String s = requestService.acceptRequest(id);
-        return  new ResponseEntity<>(s, HttpStatus.OK);
+        HashMap<String, String> res = new HashMap<>();
+        return  new ResponseEntity<>(res.put("response", s), HttpStatus.OK);
 
     }
     @PostMapping(value = "/reject/{id}",
@@ -77,7 +79,8 @@ public class RequestController {
 
     public ResponseEntity rejectRequest(@PathVariable Integer id, @RequestBody RequestDTO requestDTO){
         String s = requestService.rejectRequest(id, requestDTO.getReason());
-        return  new ResponseEntity<>(s, HttpStatus.OK);
+        HashMap<String, String> res = new HashMap<>();
+        return  new ResponseEntity<>(res.put("response", s), HttpStatus.OK);
 
     }
 

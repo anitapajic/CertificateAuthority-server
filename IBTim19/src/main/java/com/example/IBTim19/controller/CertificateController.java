@@ -21,6 +21,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -37,17 +38,17 @@ public class CertificateController {
     @GetMapping(value = "/validate/{sn}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity validate(@PathVariable String sn) {
-
+        HashMap<String, String> res = new HashMap<>();
         if (sn == null) {
-            return new ResponseEntity<>("Certificate with this serial number does not exist!", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(res.put("response", sn), HttpStatus.NOT_FOUND);
         }
         System.out.println(sn);
         Certificate cert = certificateService.findOneBySerialNumber(sn);
         if(cert.getIssuer()==null){
             if(cert.validTo.after(new Date())){
-                return new ResponseEntity<>("This is root certificate and it's valid!", HttpStatus.OK);
+                return new ResponseEntity<>(res.put("response", sn), HttpStatus.OK);
             }
-            return new ResponseEntity("Root certificate is not valid!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity(res.put("response", sn), HttpStatus.BAD_REQUEST);
         }
 
         Certificate issuerCertificate = certificateService.findOneBySerialNumber(cert.issuer);
@@ -60,10 +61,10 @@ public class CertificateController {
         }
 
         if (cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo()) && issuerCertificate.getStatus().equals(CertificateStatus.Valid) && cert.getStatus().equals(CertificateStatus.Valid) && cert.getIsRevoked().equals(false)) {
-            return new ResponseEntity<>("This certificate is valid!", HttpStatus.OK);
+            return new ResponseEntity<>(res.put("response", sn), HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("This certificate is not valid! ",HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(res.put("response", sn),HttpStatus.BAD_REQUEST);
     }
 
 
