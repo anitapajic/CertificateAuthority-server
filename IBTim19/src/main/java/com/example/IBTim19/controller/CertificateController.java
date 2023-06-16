@@ -57,7 +57,7 @@ public class CertificateController {
         Certificate cert = certificateService.findOneBySerialNumber(sn);
         if(cert.getIssuer()==null){
             if(cert.validTo.after(new Date())){
-                return new ResponseEntity<>("This is root certificate and it's valid!", HttpStatus.OK);
+                return new ResponseEntity<>(res.put("response", sn), HttpStatus.OK);
             }
             return new ResponseEntity("Root certificate is invalid!", HttpStatus.OK);
         }
@@ -72,7 +72,7 @@ public class CertificateController {
         }
 
         if (cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo()) && issuerCertificate.getStatus().equals(CertificateStatus.Valid) && cert.getStatus().equals(CertificateStatus.Valid) && cert.getIsRevoked().equals(false)) {
-            return new ResponseEntity<>("This certificate is valid!", HttpStatus.OK);
+            return new ResponseEntity<>(res.put("response", sn), HttpStatus.OK);
         }
 
         return new ResponseEntity<>("This certificate is invalid! ",HttpStatus.OK);

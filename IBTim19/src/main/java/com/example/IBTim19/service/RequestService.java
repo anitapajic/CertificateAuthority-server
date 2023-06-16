@@ -87,6 +87,7 @@ public class RequestService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User auth = (User) authentication.getPrincipal();
         Certificate issuerCert = certificateRepository.findOneBySerialNumber(request.getIssuer());
+
         if (!issuerCert.getUsername().equals(auth.getUsername())){
             return "Only issuer can accept";
         }

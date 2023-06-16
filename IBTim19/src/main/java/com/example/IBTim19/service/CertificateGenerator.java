@@ -69,7 +69,9 @@ public class CertificateGenerator {
     }
     public Certificate IssueCertificate(String issuerSN, String subjectUsername, String keyUsageFlags, Date validTo, CertificateType certType) throws CertificateException, NoSuchAlgorithmException, InvalidKeyException, NoSuchProviderException,
             SignatureException, IOException, InvalidKeySpecException, OperatorCreationException, Exception {
+       System.out.println("aaaaa");
         validate(issuerSN, subjectUsername, keyUsageFlags, validTo);
+        System.out.println("bbbb");
         type = certType;
         X509Certificate cert = generateCertificate();
 
