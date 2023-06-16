@@ -2,28 +2,64 @@ package com.example.IBTim19.controller;
 
 import com.example.IBTim19.DTO.*;
 import com.example.IBTim19.model.Activation;
+import com.example.IBTim19.model.Role;
 import com.example.IBTim19.model.User;
 import com.example.IBTim19.service.ActivationService;
+import com.example.IBTim19.service.JWTService;
 import com.example.IBTim19.service.UserService;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.json.gson.GsonFactory;
 import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.json.JsonFactory;
 
+
+
+
+@CrossOrigin(value="*")
 @RestController
 @RequestMapping(value = "/api/user")
 public class AuthenticationController {
+
+    @Value("${secretPsw}")
+    String secretPsw;
+
+    @Value("${spring.security.oauth2.client.registration.google.clientId}")
+    String googleClientId;
 
     @Autowired
     private UserService userService;
     @Autowired
     private ActivationService activationService;
+    @Autowired
+    private UserDetailsService userDetailsService;
+
+    @Autowired
+    JWTService jwtProvider;
+    @Autowired
+    AuthenticationManager authenticationManager;
 
     @PostMapping(
             value = "/login",
@@ -189,5 +225,52 @@ public class AuthenticationController {
 
         return new ResponseEntity<>(new HashMap<String, String>() {{ put("response", "Successfully changed password"); }}, HttpStatus.OK);
     }
+
+    @PostMapping(value = "/login/google")
+    public ResponseEntity loginWithGoogle(@RequestBody TokenDTO tokenDTO) throws IOException {
+
+        NetHttpTransport  transport = new NetHttpTransport();
+
+        final GsonFactory gsonFactory = new GsonFactory();
+
+        GoogleIdTokenVerifier.Builder verifier =
+                new GoogleIdTokenVerifier.Builder(transport, gsonFactory)
+                        .setAudience(Collections.singletonList(googleClientId));
+
+        final GoogleIdToken googleIdToken = GoogleIdToken.parse(verifier.getJsonFactory(), tokenDTO.getToken());
+
+        final GoogleIdToken.Payload payload = googleIdToken.getPayload();
+
+        User user;
+        if(userService.existsUsername(payload.getEmail())){
+
+            user = userService.findOneUserByUsername(payload.getEmail());
+
+        }
+        else{
+            user = new User();
+            user.setUsername(payload.getEmail());
+            user.setRole(Role.USER);
+            user.setIsActive(1);
+            userService.save(user);
+
+        }
+        TokenDTO tokenRes = signIn(user);
+
+
+        return new ResponseEntity<>(tokenRes, HttpStatus.OK);
+    }
+
+    private TokenDTO signIn(User usuario){
+        UserDetails userDetails = this.userDetailsService.loadUserByUsername(usuario.getUsername());
+        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        String jwt = jwtProvider.generateToken(usuario);
+        TokenDTO tokenDto = new TokenDTO();
+        tokenDto.setToken(jwt);
+        return tokenDto;
+    }
+
 
 }

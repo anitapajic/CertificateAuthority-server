@@ -58,6 +58,9 @@ public class UserService {
         return userRepository.findOneById(id);
     }
 
+    public boolean existsUsername(String username){
+        return userRepository.existsByUsername(username);
+    }
     public User findOneByUsername(String username){
         return userRepository.findOneByUsername(username).orElse(null);
     }
