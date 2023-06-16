@@ -2,10 +2,7 @@ package com.example.IBTim19.service;
 
 import com.example.IBTim19.DTO.*;
 import com.example.IBTim19.model.*;
-import com.example.IBTim19.repository.ResetCodeRepository;
-import com.example.IBTim19.repository.TwoFactorRepository;
-import com.example.IBTim19.repository.UserRepository;
-import org.joda.time.DateTime;
+import com.example.IBTim19.repository.*;
 import com.sendgrid.Method;
 import com.sendgrid.Request;
 import com.sendgrid.SendGrid;
@@ -21,7 +18,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -226,7 +222,7 @@ public class UserService {
         Email to = new Email("tamara_dzambic@hotmail.com"); //ovde ide username
 
         String mailContent = "<p>Dear, user </p>";
-        mailContent +="<p>This is Your twho factor code:" + code +"</p>";
+        mailContent +="<p>This is Your two factor code:" + code +"</p>";
         mailContent +="<p>Thank you<br>Team 19</p>";
 
         Content content = new Content("text/html", mailContent);
