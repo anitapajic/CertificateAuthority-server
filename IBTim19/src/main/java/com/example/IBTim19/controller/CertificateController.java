@@ -30,6 +30,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -50,18 +51,15 @@ public class CertificateController {
     @GetMapping(value = "/validate/{sn}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity validate(@PathVariable String sn) {
-
         if (sn == null) {
-            return new ResponseEntity<>("Certificate with this serial number does not exist!", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>("Certificate with this serial number does not exist!", HttpStatus.OK);
         }
-        System.out.println(sn);
         Certificate cert = certificateService.findOneBySerialNumber(sn);
-        System.out.println("aaaaaaaaaaaaaaaaaaaaaaaaa "+ cert);
         if(cert.getIssuer()==null){
             if(cert.validTo.after(new Date())){
                 return new ResponseEntity<>("This is root certificate and it's valid!", HttpStatus.OK);
             }
-            return new ResponseEntity("Root certificate is not valid!", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity("Root certificate is invalid!", HttpStatus.OK);
         }
 
         Certificate issuerCertificate = certificateService.findOneBySerialNumber(cert.issuer);
@@ -77,7 +75,7 @@ public class CertificateController {
             return new ResponseEntity<>("This certificate is valid!", HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("This certificate is not valid! ",HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("This certificate is invalid! ",HttpStatus.OK);
     }
 
 
