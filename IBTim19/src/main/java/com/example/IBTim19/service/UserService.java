@@ -106,14 +106,14 @@ public class UserService {
         return user;
     }
 
-    public AuthDTO login(String username, String password, String code){
+    public TokenDTO login(String username, String password, String code){
 
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
 
         }catch (Exception e){
             String res = "e";
-            return new AuthDTO(res);
+            return new TokenDTO(res);
         }
 
         User user = userRepository.findOneUserByUsername(username);
@@ -121,7 +121,7 @@ public class UserService {
 
         if(user.getLastChanged().isBefore(LocalDateTime.now().minusMonths(3))){
             String res = "x";
-            return new AuthDTO(res);
+            return new TokenDTO(res);
         }
 
         if (twoFactor == null || !twoFactor.getCode().equals(code)) {
@@ -135,7 +135,7 @@ public class UserService {
         twoFactorRepository.deleteById(twoFactor.getId());
 
 
-        return new AuthDTO(jwtToken);
+        return new TokenDTO(jwtToken, user.getId(), user.getRole().name());
     }
 
     public Integer resetPassword(ResetDTO resetDTO) {

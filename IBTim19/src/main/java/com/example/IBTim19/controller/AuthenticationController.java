@@ -65,7 +65,7 @@ public class AuthenticationController {
             value = "/login",
             consumes = "application/json")
     public ResponseEntity login(@RequestBody LoginDTO loginDTO) throws MessagingException, UnsupportedEncodingException {
-        AuthDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword(), loginDTO.getCode());
+        TokenDTO auth = userService.login(loginDTO.getUsername(), loginDTO.getPassword(), loginDTO.getCode());
         if(auth==null){
             return new ResponseEntity<>("Activate your account", HttpStatus.BAD_REQUEST);
         }
@@ -269,6 +269,8 @@ public class AuthenticationController {
         String jwt = jwtProvider.generateToken(usuario);
         TokenDTO tokenDto = new TokenDTO();
         tokenDto.setToken(jwt);
+        tokenDto.setRole(usuario.getRole());
+        System.out.println(tokenDto + "  token ");
         return tokenDto;
     }
 
