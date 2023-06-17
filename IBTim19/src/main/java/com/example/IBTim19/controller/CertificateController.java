@@ -151,13 +151,52 @@ public class CertificateController {
             String serialNumberHex = serialNumberBigInt.toString(16);
 
             validate(serialNumberHex);
-            return new ResponseEntity<>("This certificate is valid.",HttpStatus.OK);
+            System.out.println("AAAAAAAAAAAAAAAA");
+            if(valid(serialNumberHex)) {
+                System.out.println("AAAAAAAAAAAAAAAA");
+                return new ResponseEntity<>("This certificate is valid.",HttpStatus.OK);
+            } else {
+                System.out.println("CCCCCCCCCCCCCCCCC");
+                return new ResponseEntity<>("This certificate is invalid.",HttpStatus.OK);
+            }
+
+
 
 
         } catch (IOException | CertificateException e) {
+
+            System.out.println("BBBBBBBBBBBBBBBBB");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
+
+
+    public boolean valid(String sn) {
+
+        Certificate cert = certificateService.findOneBySerialNumber(sn);
+        if(cert.getIssuer()==null){
+            if(cert.validTo.after(new Date())){
+                return true;
+            }
+            return false;
+        }
+        Certificate issuerCertificate = certificateService.findOneBySerialNumber(cert.issuer);
+        try {
+            X509Certificate certificate = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", sn));
+            X509Certificate issCertificate = certificateGenerator.readCertificateFromFile(String.format("%s/%s.crt", "crts", issuerCertificate.getSerialNumber()));
+            //certificate.verify(issCertificate.getPublicKey());
+        } catch (Exception e) {
+            return false;
+        }
+
+        if (cert.validTo.after(new Date()) && cert.getValidTo().before(issuerCertificate.getValidTo()) && issuerCertificate.getStatus().equals(CertificateStatus.Valid) && cert.getStatus().equals(CertificateStatus.Valid) && cert.getIsRevoked().equals(false)) {
+            return true;
+        }
+
+        return false;
+    }
+
 
 
 }
