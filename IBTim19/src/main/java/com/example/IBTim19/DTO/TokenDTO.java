@@ -1,5 +1,7 @@
 package com.example.IBTim19.DTO;
 
+import com.example.IBTim19.model.Role;
+
 public class TokenDTO {
     private String token;
 
@@ -12,6 +14,16 @@ public class TokenDTO {
         this.token = token;
         this.id = id;
         this.role = role;
+    }
+
+    public TokenDTO(String token, String role) {
+        this.token = token;
+        this.role = role;
+    }
+
+    public TokenDTO(String token) {
+        this.token = token;
+
     }
 
     public String getToken() {
@@ -30,8 +42,8 @@ public class TokenDTO {
         this.id = id;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setRole(Role role) {
+        this.role = role.name();
     }
 
     public String getRole() {
