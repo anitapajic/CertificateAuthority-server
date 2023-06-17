@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.security.Key;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -158,12 +159,14 @@ public class AuthenticationController {
 
         activationService.sendVerificationCode(phoneNumber);
 
-        return new ResponseEntity<>("Check your phone", HttpStatus.CREATED);
+        HashMap<String, String> resp = new HashMap<>();
+        resp.put("response", "Check your phone");
+
+        return new ResponseEntity<>(resp, HttpStatus.CREATED);
     }
 
     @PostMapping(
-            value = "/verify/{code}",
-            consumes = "application/json")
+            value = "/verify/{code}")
     @PreAuthorize("hasAnyAuthority('USER', 'ADMIN')")
     public ResponseEntity verifyPhoneNumber(@PathVariable Integer code) {
         Integer response = activationService.verifyPhoneNumber(code);
@@ -251,7 +254,7 @@ public class AuthenticationController {
             user = new User();
             user.setUsername(payload.getEmail());
             user.setRole(Role.USER);
-            user.setIsActive(1);
+            user.setIsActive(2);
             userService.save(user);
 
         }

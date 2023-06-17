@@ -135,7 +135,7 @@ public class UserService {
         twoFactorRepository.deleteById(twoFactor.getId());
 
 
-        return new TokenDTO(jwtToken, user.getId(), user.getRole().name());
+        return new TokenDTO(jwtToken, user.getIsActive(), user.getRole().name());
     }
 
     public Integer resetPassword(ResetDTO resetDTO) {
